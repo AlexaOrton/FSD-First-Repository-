@@ -1,3 +1,10 @@
 # FSD-First-Repository-
-Learning how to use Github for version control 
-For the AIFMRM ERS Dashboard
+Version control for the AIFMRM ERS Dashboard
+
+EXPLANATION
+
+INSTRUCTIONS
+
+SECURITY MEASURES
+
+DEPLOYED LINK
