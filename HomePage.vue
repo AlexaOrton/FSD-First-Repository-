@@ -1,5 +1,6 @@
 <template>
   <div class="container-fluid m-0 p-0">
+    <back-to-top text="Back to top" visibleoffset="500"></back-to-top>
       <div id = "home-page" class="full-height">
           <div class="container pt-3">
               <div class="row pb-5">
@@ -16,13 +17,16 @@
                       <h3>By EvenBeta</h3>
                     </div>
                     <div class="border p-3 p-md-5 bg-white rounded shadow">
-                        <h2 class="text-dark">Coming Soon</h2>
+                        <h2 class="text-dark">Page Index</h2>
                         <form>
                             <div class="form-group text-dark">
-                                <label for="emailSignup ">We'll contact you when this service is live</label>
-                                <input id="emailSignup" placeholder="Enter Email">
-                                <small id="emailhelp" class="form-text text-muted">We won't share your information</small>
-                                <button type="submit" class="btn btn-success mt-3">Join Waiting List</button>
+                                <button v-scroll-to="'#table'">Weight Decomposition Table</button>
+                                <br>
+                                <button v-scroll-to="'#betaplots'">Beta Plots</button>
+                                <br>
+                                <button v-scroll-to="'#genstat'">General Share Statistics</button>
+                                <br>
+                                <button v-scroll-to="'#synweights'">Systhetic Statistics Decomposition</button>
                             </div>
                         </form>
                     </div>
@@ -47,6 +51,7 @@
                   <th >Date </th>
                   <th>Industry</th>
                   <th v-on:click="sortTable(ALSIWeights)">ALSI Weight</th>
+                  <th> FLED Weights </th>
                 </tr>
               </thead>
 
@@ -55,6 +60,8 @@
                   <td>{{row.Date}}</td>
                   <td>{{row.Industry}}</td>
                   <td>{{row.ALSIWeights}}</td>
+                  <td>{{row.FLEDWeights}}</td>
+                  
       
                 </tr>
               </tbody>
@@ -65,7 +72,7 @@
         <div class="col-lg">
           <h2 class="text-dark p-4">Weight Decomposition Chart</h2>
           <GChart
-            type="ColumnChart"
+            type="PieChart"
             :data="chartData"
             :options="chartOptions"
             style="width: 800px; height: 400px"
@@ -77,65 +84,80 @@
   </div>
 
 
-<div class="container-fluid m-0 p-0 full-height bg-dark">
-    <h3 class="p-4">Function 3 Output</h3>
-    <div id="table_div"></div>
-    <button class="btn btn-success mt-3 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
+
+
+
+<div id="betaplots" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4">Beta Progession for Selected Share</h3>
+    <div id="dashboard_div7">
+      <!--Divs that will hold each control and chart-->
+      <div id="filter_div8"></div>
+      <div id="filter_div7"></div>
+      <div id="linechart_div"></div>
+    </div>
+
+    <h3 class="text-dark p-4">Beta Progession for Selected Industry</h3>
+    <div id="dashboard_div9">
+      <!--Divs that will hold each control and chart-->
+      <div id="filter_div9"></div>
+      <div id="filter_div11"></div>
+      <div id="pflinechart_div"></div>
+    </div>
+
+
 </div>
 
-
-<div class="container-fluid m-0 p-0 full-height bg-light">
+<div id="genstat" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">General Share Statistics</h3>
-    <div id="table_div2"></div>
+    <div id="dashboard_div2">
+    <div class="row">
+      <div class="col-lg p-4" >
+    <!--Div that will hold the dashboard-->
+    
+      <!--Divs that will hold each control and chart-->
+      <div id="filter_div2"></div>
+      <div id="filter_div4"></div>
+      <div id="filter_div3"></div>
+      </div>
+      <div class="col-lg">
+      <div id="chart_div2"></div>
+      </div>
+    </div>
+    </div>
+
+    
     <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
+</div>
+
+<div id="synweights" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4">Synthetic Index Statistics Decomposition</h3>
+    <div id="synthetic_weights"></div>
+    <div id="synthetic_betas"></div>
+    <div id="synthetic_spec"></div>
+    <div id="synthetic_sys"></div>
 </div>
 
 
 <div id = "about" class="bg-light p-3 p-md-5">
           <div class="row">
               <div class="col-lg">
-                  <img src="../assets/computer.svg" height="120" class="m4">
+                  <img src="../assets/computer.svg" height="60" class="m4">
                   <h5 class="ml-md-4 mr-md-4 text-dark">Dive deeper into the data to get the complete picture </h5>
               </div>
               
               <div class="col-lg">
-                  <img src="../assets/beta.svg" height="120" class="m4">
+                  <img src="../assets/beta.svg" height="60" class="m4">
                   <h5 class="ml-md-4 mr-md-4 text-dark">Get an industry specific breakdown on the Beta Statistic for any share </h5>
               </div>
 
               <div class="col-lg">
-                  <img src="../assets/volatility.svg" height="120" class="m4">
+                  <img src="../assets/volatility.svg" height="60" class="m4">
                   <h5 class="ml-md-4 mr-md-4 text-dark">See the specific volatility for any share</h5>
               </div>
 
           </div>
   </div>
 
-
-<div id = "api">
-<h3 class="text-center text-dark" >Cryptocurrency Pricing</h3>
-    <div class="columns medium-4" >
-      <div class="card">
-        <div class="card-section text-dark">
-          <p> BTC in USD  </p>
-        </div>
-        <div class="card-divider">
-          {{BTCinUSD}}
-        </div>
-      </div>
-    </div>
-
-    <div class="columns medium-4" >
-      <div class="card">
-        <div class="card-section text-dark">
-          <p> BTC in EURO  </p>
-        </div>
-        <div class="card-divider">
-          {{BTCinEURO}}
-        </div>
-      </div>
-    </div>
-</div>
 
 
   <div id="footer" class=" p-4">
@@ -208,7 +230,7 @@
         }
       },
     
-    bitdata: [ { BTCinUSD: 3759.91, BTCinEURO:3166.21 } ]
+
   }
   }
   }
@@ -229,7 +251,7 @@
     }
 
     #about {
-        min-height: 40vh;
+        min-height: 10vh;
     }
 
     #footer {
@@ -272,8 +294,6 @@
 #table tbody tr:nth-child(2n) td {
   background: #D4D8F9;
 }
-
-
 
 
 </style>
