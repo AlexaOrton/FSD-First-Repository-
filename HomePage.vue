@@ -20,11 +20,9 @@
                         <h2 class="text-dark">Page Index</h2>
                         <form>
                             <div class="form-group text-dark">
-                                <button v-scroll-to="'#table'">Weight Decomposition Table</button>
-                                <br>
                                 <button v-scroll-to="'#betaplots'">Beta Plots</button>
                                 <br>
-                                <button v-scroll-to="'#genstat'">General Share Statistics</button>
+                                <button v-scroll-to="'#fiddle'">ALL C's Weights</button>
                                 <br>
                                 <button v-scroll-to="'#synweights'">Systhetic Statistics Decomposition</button>
                             </div>
@@ -34,57 +32,6 @@
               </div>
           </div>
       </div>
-
-
-
-
-
-      
-  <div class="container-fluid m-0 p-0 full-height bg-light">
-      <div class="row">
-        <div class="col-lg">
-          <div id="table">
-          <h2 class="text-dark">Weight Decomposition Table</h2>
-            <table id="firstTable">
-              <thead class="text-dark text-bold">
-                <tr>
-                  <th >Date </th>
-                  <th>Industry</th>
-                  <th v-on:click="sortTable(ALSIWeights)">ALSI Weight</th>
-                  <th> FLED Weights </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr v-bind:key="row.id" v-for="row in weights" class="text-dark">
-                  <td>{{row.Date}}</td>
-                  <td>{{row.Industry}}</td>
-                  <td>{{row.ALSIWeights}}</td>
-                  <td>{{row.FLEDWeights}}</td>
-                  
-      
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-    
-        <div class="col-lg">
-          <h2 class="text-dark p-4">Weight Decomposition Chart</h2>
-          <GChart
-            type="PieChart"
-            :data="chartData"
-            :options="chartOptions"
-            style="width: 800px; height: 400px"
-          />
-
-
-        </div>
-      </div>
-  </div>
-
-
-
 
 
 <div id="betaplots" class="container-fluid m-0 p-0 full-height bg-light">
@@ -107,27 +54,6 @@
 
 </div>
 
-<div id="genstat" class="container-fluid m-0 p-0 full-height bg-light">
-    <h3 class="text-dark p-4">General Share Statistics</h3>
-    <div id="dashboard_div2">
-    <div class="row">
-      <div class="col-lg p-4" >
-    <!--Div that will hold the dashboard-->
-    
-      <!--Divs that will hold each control and chart-->
-      <div id="filter_div2"></div>
-      <div id="filter_div4"></div>
-      <div id="filter_div3"></div>
-      </div>
-      <div class="col-lg">
-      <div id="chart_div2"></div>
-      </div>
-    </div>
-    </div>
-
-    
-    <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
-</div>
 
 <div id="synweights" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">Synthetic Index Statistics Decomposition</h3>
@@ -136,6 +62,35 @@
     <div id="synthetic_spec"></div>
     <div id="synthetic_sys"></div>
 </div>
+
+
+<div id="fiddle" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4"> All C's Weights</h3>
+    <div id="dashboard">
+    <table>
+        <tr style='vertical-align: top'>
+            <td style='width: 300px; font-size: 0.9em;'>
+                <div id="control1"></div>
+                <div id="filter_div4"></div>
+                <div id="superfilter_div"></div>
+                <div id="subfilter_div"></div>
+                <div id="filter_div3"></div>
+                <div id="control2"></div>
+
+            </td>
+            <td style='width: 600px'>
+                <div style="float: left;" id="chart1"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+</div>
+
+
+
+
+
+
 
 
 <div id = "about" class="bg-light p-3 p-md-5">
