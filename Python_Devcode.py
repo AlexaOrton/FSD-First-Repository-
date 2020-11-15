@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # In[1]:
-#lets see if this really works out the way I hope it can
+
 
 
 import pandas as pd
@@ -18,7 +18,7 @@ import numpy as np
 """
 # 0.0 Establish connection with SQL Database
 conn = pyodbc.connect(  'Driver={SQL Server};'
-                     'Server=ZACTNB1808001\SQLEXPRESS;'
+                     'Server=ZIPHO-WORKSTATI\SQLEXPRESS;'
                      'Database=AIFMRM_ERS;'
                      'Trusted_Connection=yes;')
                      
@@ -85,7 +85,7 @@ for i in range (0,12):
     tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output.Date == rDate1[i], 'Date'] = rDate[i]
 
 
-# In[4]:
+# In[625]:
 
 
 print(set(tbl_BA_Beta_Output['Date']))
@@ -218,7 +218,7 @@ generalStats_tbl[(generalStats_tbl['Instrument']=='ACE') & (generalStats_tbl['Da
 # In[22]:
 
 
-generalStats_tbl.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\generalStats_tbl.csv',index = False, header=True)
+#generalStats_tbl.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\generalStats_tbl.csv',index = False, header=True)
 
 
 # In[23]:
@@ -282,12 +282,6 @@ def Indices(indexCode):
 
 Industry = ['Basic Materials','Consumer Goods','Consumer Services','Financials','Health Care'
             ,'Industrials','Oil & Gas','Technology','Telecommunications','Utilities']
-
-
-# In[ ]:
-
-
-
 
 
 # # Function 1
@@ -414,10 +408,10 @@ for i in range(0,12):
 # CONCATENATE THE ROWS 
 
 
-# In[28]:
+# In[488]:
 
 
-ICsAndWeights_ALSI
+ICsAndWeights_TOPI
 
 
 # In[29]:
@@ -446,11 +440,18 @@ allICsAndWeights =allICsAndWeights.fillna(0)
 allICsAndWeights
 
 
-# In[32]:
+# In[530]:
 
 
-allICsAndWeights[(allICsAndWeights['Date']==rDate[0]) & (allICsAndWeights['Industry']=='Basic Materials') 
-                 &  (allICsAndWeights['ALSIWeights']> 0) ]
+topiinterest = allICsAndWeights[(allICsAndWeights['Date']==rDate[11]) 
+                 &  (allICsAndWeights['TOPIWeights']> 0) ][['Date','Instrument','Industry']]
+
+
+# In[478]:
+
+
+topiinterest.sort_values(by=['Instrument'], inplace=True)
+topiinterest.reset_index(drop = True)
 
 
 # In[33]:
@@ -506,7 +507,7 @@ print(set(allICsAndWeights['Industry']))
 # In[40]:
 
 
-IndustryWeights.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\IndustryWeights_tbl.csv',index = False, header=True)
+IndustryWeights.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\IndustryWeights_tbl.csv',index = False, header=True)
 
 
 # In[41]:
@@ -518,13 +519,19 @@ IndustryWeights[(IndustryWeights['Date'] == rDate[3])]['ALSIWeights'].sum()
 # In[42]:
 
 
-allICsAndWeights.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\allICsAndWeights_tbl.csv',index = False, header=True)
+#allICsAndWeights.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\allICsAndWeights_tbl.csv',index = False, header=True)
 
 
-# In[43]:
+# In[458]:
 
 
 allICsAndWeights['TOPIWeights'].sum()    # the sum of this should be 12 since there are 12 quarters and each one adds to 1
+
+
+# In[459]:
+
+
+allICsAndWeights
 
 
 # In[44]:
@@ -609,6 +616,12 @@ Beta_t = tbl_BA_Beta_Output
 # In[47]:
 
 
+Beta_t.corr()
+
+
+# In[48]:
+
+
 # #### Function 2 ####  
 # def GetBetasMktAndSpecVols(rDate1,rDate,mktIndexCode,indexCode):
     
@@ -647,20 +660,45 @@ Beta_t = tbl_BA_Beta_Output
 #     return  Betas_Mkt_SpecVols             # populating DB_tbl
 
 
-# In[48]:
+# In[512]:
+
+
+Beta_rdate = Beta_t[(Beta_t['Date'] == rDate[11]) & (Beta_t['Index'] == mktIndexCode[0])]
+Beta_rdate
+
+
+# In[560]:
+
+
+ICs = GetICsAndWeights(rDate[11],indexCode[5])
+
+TOPItest =ICs[(ICs['TOPIWeights']>0)]
+TOPItest.sort_values(by=['Instrument'], inplace=True)
+TOPItest.reset_index(drop= True)
+
+
+# In[513]:
+
+
+Betas_ICs = pd.merge(TOPItest , Beta_rdate , on=['Instrument','Date'])
+
+Betas_ICs
+
+
+# In[581]:
 
 
 
 #### Function 2 ####  
 def GetBetasMktAndSpecVols(rDate,mktIndexCode,indexCode):
     
-    #Note to add if statement to ensure the correct rDate1 matches with rDate. Current method still works
+    
     #filter data according to quarter and market proxy
     Beta_rdate = Beta_t[(Beta_t['Date'] == rDate) & (Beta_t['Index'] == mktIndexCode)]
 
     #read in function 1
     ICs = GetICsAndWeights(rDate,indexCode)         #need to filter out the constituents with wieght nan
-    ICs = ICs.dropna()
+    
     
     #merge the dataaframes on the Instrument
     Betas_ICs = pd.merge(ICs , Beta_rdate , on=['Instrument','Date'])
@@ -686,64 +724,50 @@ def GetBetasMktAndSpecVols(rDate,mktIndexCode,indexCode):
     mktVol = mktVol[['Date','Instrument','mktVol']]
     m = mktVol['mktVol']
     
-    #return Beta, specVols, mktVol  
-    return Betas_Mkt_SpecVols, mktVol      
- #   return  Betas_Mkt_SpecVols             # populating DB_tbl
+  
+    return Betas_Mkt_SpecVols,mktVol     
+    #return  Betas_Mkt_SpecVols             # populating DB_tbl
 
 
-# In[49]:
+# In[582]:
 
 
 #Call function 2
 
 #B, m, s,Betas_Mkt_SpecVols = GetBetasMktAndSpecVols(rDate1[i],rDate[i],mktIndexCode[y],indexCode[z])
-Betas_Mkt_SpecVols, mktVol   = GetBetasMktAndSpecVols(rDate[6],mktIndexCode[0],indexCode[6])
-print(mktVol)
+Betas_Mkt_SpecVols,mktVol   = GetBetasMktAndSpecVols(rDate[11],mktIndexCode[0],indexCode[5])
+Betas_Mkt_SpecVols = Betas_Mkt_SpecVols
+mktVol = mktVol
 
 
-# In[50]:
+# In[583]:
 
 
+Topitest2 = Betas_Mkt_SpecVols[(Betas_Mkt_SpecVols['Date']==rDate[11]) 
+                 &  (Betas_Mkt_SpecVols['TOPIWeights']> 0) ]
+Topitest2.sort_values(by=['Instrument'], inplace=True)
+Topitest2.reset_index(drop= True)  # matches SQL
 
-indexCode
 
-
-# In[51]:
+# In[584]:
 
 
 y = 0
 mktVol_tbl = pd.DataFrame({})
 for y in range(0,5):    # y for all index range is actually from 0-4
-    i=0
-    c,mktVol = GetBetasMktAndSpecVols(rDate[i],mktIndexCode[y],indexCode[0])    # c is just a placeholder
-    mktVol_tbl =mktVol_tbl.append(mktVol,ignore_index=True)
     
-    for i in range(1,12):        #y for all indexcode
+    for i in range(0,12):        #y for all indexcode
         c,mktVol = GetBetasMktAndSpecVols(rDate[i],mktIndexCode[y],indexCode[0])
         mktVol_tbl = mktVol_tbl.append(mktVol,ignore_index=True)
 
 
-# In[52]:
+# In[585]:
 
 
-# i,y = 1,1     
-
-# for y in range(2,6):    # y for all index
-#     print(y)
-#     print(i)
-    
-#     for i in range(3,11):
-#         print(y)
-#         print(i)
+print(mktVol_tbl.head(3))    # just note to use rDate1
 
 
-# In[53]:
-
-
-print(mktVol_tbl)    # just note to use rDate1
-
-
-# In[54]:
+# In[55]:
 
 
 # z = 0
@@ -772,26 +796,7 @@ print(mktVol_tbl)    # just note to use rDate1
 #         BetasMktAndSpecVols_tbl =BetasMktAndSpecVols_tbl.append(Betas_Mkt_SpecVols,ignore_index=True)
 
 
-# In[55]:
-
-
-z = 0
-i = 0
-y = 0
-BetasMktAndSpecVols_tbl = pd.DataFrame({})
-for z in range(0,5):    # z for all index
-
-    
-    for y in range(0,12):        #y for all indexcode
-       
-        
-        for i in range(2,12):   #i is for all dates
-            Betas_Mkt_SpecVols = GetBetasMktAndSpecVols(rDate[i],mktIndexCode[z],indexCode[y])
-            BetasMktAndSpecVols_tbl =BetasMktAndSpecVols_tbl.append(Betas_Mkt_SpecVols,ignore_index=True)
-            
-
-
-# In[56]:
+# In[586]:
 
 
 z = 0
@@ -803,12 +808,30 @@ for z in range(0,5):    # z for all index
     for y in range(0,12):        #y for all indexcode
         
         for i in range(0,12):   #i is for all dates
-            Betas_Mkt_SpecVols = GetBetasMktAndSpecVols(rDate[i],mktIndexCode[z],indexCode[y])
+            Betas_Mkt_SpecVols,c = GetBetasMktAndSpecVols(rDate[i],mktIndexCode[z],indexCode[y])
             BetasMktAndSpecVols_tbl =BetasMktAndSpecVols_tbl.append(Betas_Mkt_SpecVols,ignore_index=True)
             
 
 
-# In[57]:
+# In[596]:
+
+
+Topitest3 = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[11]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5] ) 
+                                                    &  (BetasMktAndSpecVols_tbl['TOPIWeights']> 0)
+                           &  (BetasMktAndSpecVols_tbl['Index']=='J200')]
+
+Topitest3.sort_values(by=['Instrument'], inplace=True)
+Topitest3.reset_index(drop= True)  # matches SQL
+
+
+# In[598]:
+
+
+BetasMktAndSpecVols_tbl
+
+
+# In[58]:
 
 
 # z = 0
@@ -836,7 +859,7 @@ for z in range(0,5):    # z for all index
 # for y,z in range()
 
 
-# In[58]:
+# In[599]:
 
 
 BetasMktAndSpecVols_tbl = BetasMktAndSpecVols_tbl.fillna(0)
@@ -848,20 +871,20 @@ BetasMktAndSpecVols_tbl = BetasMktAndSpecVols_tbl.fillna(0)
 
 
 
-# In[59]:
+# In[60]:
 
 
 # BetasMktAndSpecVols_tbl = BetasMktAndSpecVols_tbl[['Date','Instrument','Indices','Index','Industry','Beta','mktVol','specVols']]
 # print(BetasMktAndSpecVols_tbl)
 
 
-# In[60]:
+# In[600]:
 
 
 BetasMktAndSpecVols_tbl.rename(columns = {'Index': 'Index_A'}, inplace = True)   # index is a primary key in the database therefore the name needs to be changed
 
 
-# In[61]:
+# In[601]:
 
 
 i= 0
@@ -876,33 +899,27 @@ print(test1[(test1['Date'] == rDate[0])])    # The bottom line of code should re
 #### Okay ####
 
 
-# In[62]:
+# In[602]:
 
 
 BetasMktAndSpecVols_tbl
 #Okay_everything_matches
 
 
-# In[63]:
+# In[603]:
 
 
 for i in range (0,12):
     print(len(set(BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Indices']==indexCode[i])]['Date'])))
 
 
-# In[64]:
-
-
-BetasMktAndSpecVols_tbl[ (BetasMktAndSpecVols_tbl['Index_A'] == 'J258') & (BetasMktAndSpecVols_tbl['Date'] == rDate[0]) &(BetasMktAndSpecVols_tbl['Indices'] =='ALSI')]
-
-
-# In[65]:
-
-
-BetasMktAndSpecVols_tbl.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\BetasMktAndSpecVols_tbl.csv',index = False, header=True)
-
-
 # In[66]:
+
+
+#BetasMktAndSpecVols_tbl.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\BetasMktAndSpecVols_tbl.csv',index = False, header=True)
+
+
+# In[605]:
 
 
 IndustryWeights2 = BetasMktAndSpecVols_tbl.groupby(by=['Date','Industry','Index_A'],as_index = False)[['ALSIWeights','FLEDWeights','LRGCWeights', 'MIDCWeights',
@@ -912,20 +929,20 @@ IndustryWeights2 = BetasMktAndSpecVols_tbl.groupby(by=['Date','Industry','Index_
 IndustryWeights2.head()     # when grouping make sure to turn index_as = False
 
 
-# In[67]:
-
-
-IndustryWeights2.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\IndustryWeights2.csv',index = False, header=True)
-
-
 # In[68]:
+
+
+#IndustryWeights2.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\IndustryWeights2.csv',index = False, header=True)
+
+
+# In[69]:
 
 
 # c['Betas'] = c['Betas'].apply(pd.to_numeric)
 # c = c.astype({'Betas':'float64'})
 
 
-# In[69]:
+# In[70]:
 
 
 # cursor.execute('CREATE TABLE BetasMktAndSpecVols_tbl(Date datetime, Instrument nvarchar(50),Indices nvarchar(50),Index_A nvarchar(50), Industry nvarchar(50), Beta float,mktVol float,specVols float)')
@@ -950,28 +967,32 @@ IndustryWeights2.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF500
 
 # # FUNCTION 3
 
-# In[70]:
+# In[681]:
 
 
 def CalcStats(rDate,mktIndexCode,indexCode):
     
+    # Diagonal 
+    Shares = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode) & (BetasMktAndSpecVols_tbl[indexCode +'Weights']> 0 )][['Instrument']]
+    Shares_ofinterest = Shares.Instrument.tolist()
+    
+    
     # Creating Diagonal matrices S and D
-    s = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode) 
-                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode )]['specVols']
+    s =  BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode) & (BetasMktAndSpecVols_tbl[indexCode +'Weights']> 0 )]['specVols']
     S =np.diag(s)
     
-    # D_invr = np.linalg.inv(D)
-    #print(D_inv)       # Has a determinant of zero. This is the definition of a Singular matrix 
-                    #[one for which an inverse does not exist]
     
     # Create numpy arrays
     B = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode) 
-                        & (BetasMktAndSpecVols_tbl['Indices'] == indexCode)]['Beta']
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode) & (BetasMktAndSpecVols_tbl[indexCode +'Weights']> 0 )]['Beta']
     B = np.array(B)          # Create numpy arrays
     m = mktVol_tbl[(mktVol_tbl['Date']==rDate) & (mktVol_tbl['Instrument']==mktIndexCode)]['mktVol']
+    m = m 
     m = m.item()       # m is a scalar
     w = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode) 
-                        & (BetasMktAndSpecVols_tbl['Indices'] == indexCode)][indexCode +'Weights']
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode) & (BetasMktAndSpecVols_tbl[indexCode +'Weights']> 0 )][indexCode +'Weights']
     w = np.array(w)
     # remove nan's
     B = np.nan_to_num(B)
@@ -992,6 +1013,8 @@ def CalcStats(rDate,mktIndexCode,indexCode):
     # Systematic_Covariance_Matrix = B.dot(bT)*(m**2)   # Also works
     sysCov = np.dot(B,bT)*(m**2) 
     #print(Systematic_Covariance_Matrix)
+    df_sysCov = pd.DataFrame(sysCov,columns= Shares_ofinterest , index = Shares_ofinterest)
+    
     
     #Portfolio_Systematic_Variance
     pfSysVol = np.dot(np.dot(np.dot(wT,B),bT),w)*(m**2)
@@ -1000,6 +1023,7 @@ def CalcStats(rDate,mktIndexCode,indexCode):
     #Specific_Covariance_Matrix
     specCov = S**2
     #print(Specific_Covariance_Matrix)
+    df_specCov = pd.DataFrame(specCov,columns= Shares_ofinterest , index = Shares_ofinterest)
     
     #Portfolio_Spefic_Variance
     pfSpecVol = np.dot(np.dot(wT,S**2),w)
@@ -1008,32 +1032,45 @@ def CalcStats(rDate,mktIndexCode,indexCode):
     #Total_Covariance_Matrix)
     totCov = np.dot(B,bT)*(m**2) + S**2
     #print(Total_Covariance_Matrix)
+    df_totCov = pd.DataFrame(totCov,columns= Shares_ofinterest , index = Shares_ofinterest)
     
     #Portfolio_Variance
     pfVol = np.dot(np.dot(np.dot(wT,B),bT),w)*(m**2) + np.dot(np.dot(wT,S**2),w)
     #print(Portfolio_Variance)
 
-    D = totCov.diagonal()
+    d = totCov.diagonal()
+    D = np.sqrt(d)
     D = np.diag(D)
-    #D_inv =  np.linalg.inv(D)  # Has a determinant of zero. This is the definition of a Singular matrix (one for which an inverse does not exist)
-    #D_inv =  np.invert(D)   # also doesnt work for some reason
+    D_inv = np.linalg.pinv(D)   
     
-    #CorrMat = D_inv.dot(B.dot(bT))*(m**2) + S**2   #need D_inv
+    #Correlation Matrix
+    CorrMat = np.dot(np.dot(D_inv,totCov),D_inv)
+    df_CorrMat = pd.DataFrame(CorrMat,columns= Shares_ofinterest , index = Shares_ofinterest)
+
     
-    
-    return pfSpecVol
+    return pfBeta,pfSysVol,pfSpecVol
+    #return df_CorrMat
 
 
-# In[99]:
+# In[683]:
 
 
-pfBeta = CalcStats(rDate[0],mktIndexCode[2],indexCode[0])
+pfBeta,pfSysVol,pfSpecVol= CalcStats(rDate[11],mktIndexCode[0],indexCode[5])
 print(pfBeta)
+print(pfSysVol)
+print(pfSpecVol)
 
 
-# In[72]:
+# In[674]:
 
 
+#df_CorrMat_11.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\df_CorrMat_tbl_11.csv',index = True, header=True)
+
+
+# In[685]:
+
+
+#Create a Date dataframe
 Date_tbl = pd.DataFrame({})
 temp = pd.DataFrame({})
 for z in range(0,5):    # z for all index
@@ -1049,13 +1086,7 @@ for z in range(0,5):    # z for all index
         Date_tbl =Date_tbl.append(temp,ignore_index=True)
 
 
-# In[73]:
-
-
-Date_tbl
-
-
-# In[74]:
+# In[686]:
 
 
 z = 0
@@ -1072,220 +1103,6 @@ pfBeta_PCAP = np.array({})
 pfBeta_SAPY = np.array({})
 pfBeta_ALTI = np.array({})
 pfBeta_tbl = pd.DataFrame({})
-Date_tbl = pd.DataFrame({})
-
-
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
-    pfBeta_ALSI =np.append(pfBeta_ALSI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
-        pfBeta_ALSI =np.append(pfBeta_ALSI,pfBeta)
-        
-pfBeta_tbl['pfBeta_ALSI'] = pfBeta_ALSI
-        
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
-    pfBeta_FLED =np.append(pfBeta_FLED,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
-        pfBeta_FLED =np.append(pfBeta_FLED,pfBeta)
-        
-pfBeta_tbl['pfBeta_FLED'] = pfBeta_FLED
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
-    pfBeta_LRGC =np.append(pfBeta_LRGC,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
-        pfBeta_LRGC =np.append(pfBeta_LRGC,pfBeta)
-
-pfBeta_tbl['pfBeta_LRGC'] = pfBeta_LRGC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-    pfBeta_MIDC =np.append(pfBeta_MIDC,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-        pfBeta_MIDC =np.append(pfBeta_MIDC,pfBeta)
-        
-pfBeta_tbl['pfBeta_MIDC'] = pfBeta_MIDC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
-    pfBeta_SMLC =np.append(pfBeta_SMLC,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
-        pfBeta_SMLC =np.append(pfBeta_SMLC,pfBeta)
-        
-pfBeta_tbl['pfBeta_SMLC'] = pfBeta_SMLC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
-    pfBeta_TOPI =np.append(pfBeta_TOPI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
-        pfBeta_TOPI =np.append(pfBeta_TOPI,pfBeta)
-        
-pfBeta_tbl['pfBeta_TOPI'] = pfBeta_TOPI
-        
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
-    pfBeta_RESI =np.append(pfBeta_RESI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
-        pfBeta_RESI =np.append(pfBeta_RESI,pfBeta)
-        
-pfBeta_tbl['pfBeta_RESI'] = pfBeta_RESI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-    pfBeta_FINI =np.append(pfBeta_FINI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-        pfBeta_FINI =np.append(pfBeta_FINI,pfBeta)
-
-pfBeta_tbl['pfBeta_FINI'] = pfBeta_FINI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
-    pfBeta_INDI =np.append(pfBeta_INDI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
-        pfBeta_INDI =np.append(pfBeta_INDI,pfBeta)
-        
-pfBeta_tbl['pfBeta_INDI'] = pfBeta_INDI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
-    pfBeta_PCAP =np.append(pfBeta_PCAP,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
-        pfBeta_PCAP =np.append(pfBeta_PCAP,pfBeta)
-        
-pfBeta_tbl['pfBeta_PCAP'] = pfBeta_PCAP
-    
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
-    pfBeta_SAPY =np.append(pfBeta_SAPY,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
-        pfBeta_SAPY =np.append(pfBeta_SAPY,pfBeta)
-        
-pfBeta_tbl['pfBeta_SAPY'] = pfBeta_SAPY
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
-    pfBeta_ALTI =np.append(pfBeta_ALTI,pfBeta)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfBeta = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
-        pfBeta_ALTI =np.append(pfBeta_ALTI,pfBeta)
-        
-pfBeta_tbl['pfBeta_ALTI'] = pfBeta_ALTI        
-
-
-# In[75]:
-
-
-pfBeta_tbl = pfBeta_tbl.drop(pfBeta_tbl.index[0]).reset_index(drop=True)
-pfBeta_tbl.head()
-
-# run only once or it will keep deleting your output
-
-
-# In[76]:
-
-
-
-Date_Index=BetasMktAndSpecVols_tbl.groupby(by=['Index_A','Date'],as_index = False)[['ALSIWeights','FLEDWeights']].sum()  
-Date_Index= Date_Index[(Date_Index['Index_A'] != 0)][['Date','Index_A']].reset_index(drop=True)
-# Just for get the date and in
-
-
-# In[77]:
-
-
-Date_Index
-
-
-# In[78]:
-
-
-pfBetas =pfBeta_tbl.assign(Date = Date_Index['Date'],Index = Date_Index["Index_A"])
-pfBetas = pfBetas.iloc[:,np.r_[12:14,0:12]]
-
-
-# In[79]:
-
-
-pfBetas
-
-
-# In[80]:
-
-
-pfBetas_t = pfBetas[(pfBetas['Index'] == 'J200')]
-
-
-# In[81]:
-
-
-pfBetas[(pfBetas['Index'] == 'J200')]
-
-
-# In[82]:
-
-
-pfBetas
-
-
-# In[83]:
-
-
-pfBetas.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfBetas.csv',index = False, header=True)
-
-
-# In[84]:
-
-
-z = 0
 pfSysVol_ALSI = np.array({})
 pfSysVol_FLED = np.array({})
 pfSysVol_LRGC = np.array({})
@@ -1299,194 +1116,6 @@ pfSysVol_PCAP = np.array({})
 pfSysVol_SAPY = np.array({})
 pfSysVol_ALTI = np.array({})
 pfSysVol_tbl = pd.DataFrame({})
-Date_tbl = pd.DataFrame({})
-
-
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
-    pfSysVol_ALSI =np.append(pfSysVol_ALSI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
-        pfSysVol_ALSI =np.append(pfSysVol_ALSI,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_ALSI'] = pfSysVol_ALSI
-        
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
-    pfSysVol_FLED =np.append(pfSysVol_FLED,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
-        pfSysVol_FLED =np.append(pfSysVol_FLED,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_FLED'] = pfSysVol_FLED
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
-    pfSysVol_LRGC =np.append(pfSysVol_LRGC,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
-        pfSysVol_LRGC =np.append(pfSysVol_LRGC,pfSysVol)
-
-pfSysVol_tbl['pfSysVol_LRGC'] = pfSysVol_LRGC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-    pfSysVol_MIDC =np.append(pfSysVol_MIDC,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-        pfSysVol_MIDC =np.append(pfSysVol_MIDC,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_MIDC'] = pfSysVol_MIDC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
-    pfSysVol_SMLC =np.append(pfSysVol_SMLC,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
-        pfSysVol_SMLC =np.append(pfSysVol_SMLC,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_SMLC'] = pfSysVol_SMLC
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
-    pfSysVol_TOPI =np.append(pfSysVol_TOPI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
-        pfSysVol_TOPI =np.append(pfSysVol_TOPI,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_TOPI'] = pfSysVol_TOPI
-        
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
-    pfSysVol_RESI =np.append(pfSysVol_RESI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
-        pfSysVol_RESI =np.append(pfSysVol_RESI,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_RESI'] = pfSysVol_RESI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-    pfSysVol_FINI =np.append(pfSysVol_FINI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-        pfSysVol_FINI =np.append(pfSysVol_FINI,pfSysVol)
-
-pfSysVol_tbl['pfSysVol_FINI'] = pfSysVol_FINI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
-    pfSysVol_INDI =np.append(pfSysVol_INDI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
-        pfSysVol_INDI =np.append(pfSysVol_INDI,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_INDI'] = pfSysVol_INDI
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
-    pfSysVol_PCAP =np.append(pfSysVol_PCAP,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
-        pfSysVol_PCAP =np.append(pfSysVol_PCAP,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_PCAP'] = pfSysVol_PCAP
-    
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
-    pfSysVol_SAPY =np.append(pfSysVol_SAPY,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
-        pfSysVol_SAPY =np.append(pfSysVol_SAPY,pfSysVol)
-        	
-pfSysVol_tbl['pfSysVol_SAPY'] = pfSysVol_SAPY
-
-for z in range(0,5):    # z for all index
-    i=0
-    pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
-    pfSysVol_ALTI =np.append(pfSysVol_ALTI,pfSysVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSysVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
-        pfSysVol_ALTI =np.append(pfSysVol_ALTI,pfSysVol)
-        
-pfSysVol_tbl['pfSysVol_ALTI'] = pfSysVol_ALTI        
-
-
-# In[85]:
-
-
-pfSysVol_tbl = pfSysVol_tbl.drop(pfBeta_tbl.index[0]).reset_index(drop=True)
-pfSysVol_tbl.head()
-
-#Given as percentage
-# run only once or it will keep deleting your output
-
-
-# In[86]:
-
-
-pfSysVol =pfSysVol_tbl.assign(Date = Date_Index['Date'],Index = Date_Index["Index_A"])
-pfSysVol = pfSysVol.iloc[:,np.r_[12:14,0:12]]
-
-
-# In[100]:
-
-
-pfSysVol[(pfSysVol['Index'] == 'J200')]
-
-
-# In[88]:
-
-
-pfSysVol
-
-
-# In[89]:
-
-
-pfSysVol.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfSysVol.csv',index = False, header=True)
-
-
-# In[90]:
-
-
-z = 0
 pfSpecVol_ALSI = np.array({})
 pfSpecVol_FLED = np.array({})
 pfSpecVol_LRGC = np.array({})
@@ -1505,151 +1134,232 @@ Date_tbl = pd.DataFrame({})
 
 
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
-    pfSpecVol_ALSI =np.append(pfSpecVol_ALSI,pfSpecVol)
+   
     
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_ALSI =np.append(pfBeta_ALSI,pfBeta)
+        pfSysVol_ALSI =np.append(pfSysVol_ALSI,pfSysVol)
         pfSpecVol_ALSI =np.append(pfSpecVol_ALSI,pfSpecVol)
         
+pfBeta_tbl['pfBeta_ALSI'] = pfBeta_ALSI
+pfSysVol_tbl['pfSysVol_ALSI'] = pfSysVol_ALSI
 pfSpecVol_tbl['pfSpecVol_ALSI'] = pfSpecVol_ALSI
         
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
-    pfSpecVol_FLED =np.append(pfSpecVol_FLED,pfSpecVol)
+ 
     
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[1])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_FLED =np.append(pfBeta_FLED,pfBeta)
+        pfSysVol_FLED =np.append(pfSysVol_FLED,pfSysVol)
         pfSpecVol_FLED =np.append(pfSpecVol_FLED,pfSpecVol)
         
+pfBeta_tbl['pfBeta_FLED'] = pfBeta_FLED
+pfSysVol_tbl['pfSysVol_FLED'] = pfSysVol_FLED
 pfSpecVol_tbl['pfSpecVol_FLED'] = pfSpecVol_FLED
 
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
-    pfSpecVol_LRGC =np.append(pfSpecVol_LRGC,pfSpecVol)
+ 
     
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[2])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_LRGC =np.append(pfBeta_LRGC,pfBeta)
+        pfSysVol_LRGC =np.append(pfSysVol_LRGC,pfSysVol)
         pfSpecVol_LRGC =np.append(pfSpecVol_LRGC,pfSpecVol)
-
+        
+pfBeta_tbl['pfBeta_LRGC'] = pfBeta_LRGC
+pfSysVol_tbl['pfSysVol_LRGC'] = pfSysVol_LRGC
 pfSpecVol_tbl['pfSpecVol_LRGC'] = pfSpecVol_LRGC
 
-for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-    pfSpecVol_MIDC =np.append(pfSpecVol_MIDC,pfSpecVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[3])
-        pfSpecVol_MIDC =np.append(pfSpecVol_MIDC,pfSpecVol)
-        
-pfSpecVol_tbl['pfSpecVol_MIDC'] = pfSpecVol_MIDC
 
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
-    pfSpecVol_SMLC =np.append(pfSpecVol_SMLC,pfSpecVol)
+   
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_MIDC =np.append(pfBeta_MIDC,pfBeta)
+        pfSysVol_MIDC =np.append(pfSysVol_MIDC,pfSysVol)
+        pfSpecVol_MIDC =np.append(pfSpecVol_MIDC,pfSpecVol)
+        
+pfBeta_tbl['pfBeta_MIDC'] = pfBeta_MIDC
+pfSysVol_tbl['pfSysVol_MIDC'] = pfSysVol_MIDC
+pfSpecVol_tbl['pfSpecVol_MIDC'] = pfSpecVol_MIDC
+
+
+for z in range(0,5):    # z for all index
+
     
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[4])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_SMLC =np.append(pfBeta_SMLC,pfBeta)
+        pfSysVol_SMLC =np.append(pfSysVol_SMLC,pfSysVol)
         pfSpecVol_SMLC =np.append(pfSpecVol_SMLC,pfSpecVol)
         
+pfBeta_tbl['pfBeta_SMLC'] = pfBeta_SMLC
+pfSysVol_tbl['pfSysVol_SMLC'] = pfSysVol_SMLC
 pfSpecVol_tbl['pfSpecVol_SMLC'] = pfSpecVol_SMLC
 
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
-    pfSpecVol_TOPI =np.append(pfSpecVol_TOPI,pfSpecVol)
     
     
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[5])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_TOPI =np.append(pfBeta_TOPI,pfBeta)
+        pfSysVol_TOPI =np.append(pfSysVol_TOPI,pfSysVol)
         pfSpecVol_TOPI =np.append(pfSpecVol_TOPI,pfSpecVol)
         
+pfBeta_tbl['pfBeta_TOPI'] = pfBeta_TOPI
+pfSysVol_tbl['pfSysVol_TOPI'] = pfSysVol_TOPI
 pfSpecVol_tbl['pfSpecVol_TOPI'] = pfSpecVol_TOPI
+
         
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
-    pfSpecVol_RESI =np.append(pfSpecVol_RESI,pfSpecVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[6])
+   
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_RESI =np.append(pfBeta_RESI,pfBeta)
+        pfSysVol_RESI =np.append(pfSysVol_RESI,pfSysVol)
         pfSpecVol_RESI =np.append(pfSpecVol_RESI,pfSpecVol)
         
+pfBeta_tbl['pfBeta_RESI'] = pfBeta_RESI
+pfSysVol_tbl['pfSysVol_RESI'] = pfSysVol_RESI
 pfSpecVol_tbl['pfSpecVol_RESI'] = pfSpecVol_RESI
 
-for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-    pfSpecVol_FINI =np.append(pfSpecVol_FINI,pfSpecVol)
-    
-    
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[7])
-        pfSpecVol_FINI =np.append(pfSpecVol_FINI,pfSpecVol)
 
+for z in range(0,5):    # z for all index
+    
+    
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_FINI =np.append(pfBeta_FINI,pfBeta)
+        pfSysVol_FINI =np.append(pfSysVol_FINI,pfSysVol)
+        pfSpecVol_FINI =np.append(pfSpecVol_FINI,pfSpecVol)
+        
+pfBeta_tbl['pfBeta_FINI'] = pfBeta_FINI
+pfSysVol_tbl['pfSysVol_FINI'] = pfSysVol_FINI
 pfSpecVol_tbl['pfSpecVol_FINI'] = pfSpecVol_FINI
 
+
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
-    pfSpecVol_INDI =np.append(pfSpecVol_INDI,pfSpecVol)
     
     
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[8])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_INDI =np.append(pfBeta_INDI,pfBeta)
+        pfSysVol_INDI =np.append(pfSysVol_INDI,pfSysVol)
         pfSpecVol_INDI =np.append(pfSpecVol_INDI,pfSpecVol)
         
+pfBeta_tbl['pfBeta_INDI'] = pfBeta_INDI
+pfSysVol_tbl['pfSysVol_INDI'] = pfSysVol_INDI
 pfSpecVol_tbl['pfSpecVol_INDI'] = pfSpecVol_INDI
 
+
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
-    pfSpecVol_PCAP =np.append(pfSpecVol_PCAP,pfSpecVol)
     
     
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[9])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_PCAP =np.append(pfBeta_PCAP,pfBeta)
+        pfSysVol_PCAP =np.append(pfSysVol_PCAP,pfSysVol)
         pfSpecVol_PCAP =np.append(pfSpecVol_PCAP,pfSpecVol)
         
+pfBeta_tbl['pfBeta_PCAP'] = pfBeta_PCAP
+pfSysVol_tbl['pfSysVol_PCAP'] = pfSysVol_PCAP
 pfSpecVol_tbl['pfSpecVol_PCAP'] = pfSpecVol_PCAP
+
     
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
-    pfSpecVol_SAPY =np.append(pfSpecVol_SAPY,pfSpecVol)
     
     
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[10])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_SAPY =np.append(pfBeta_SAPY,pfBeta)
+        pfSysVol_SAPY =np.append(pfSysVol_SAPY,pfSysVol)
         pfSpecVol_SAPY =np.append(pfSpecVol_SAPY,pfSpecVol)
         
+pfBeta_tbl['pfBeta_SAPY'] = pfBeta_SAPY
+pfSysVol_tbl['pfSysVol_SAPY'] = pfSysVol_SAPY
 pfSpecVol_tbl['pfSpecVol_SAPY'] = pfSpecVol_SAPY
 
+
 for z in range(0,5):    # z for all index
-    i=0
-    pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
-    pfSpecVol_ALTI =np.append(pfSpecVol_ALTI,pfSpecVol)
     
     
-    for i in range(1,12):        #y for all indexcode
-        pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[11])
+    for i in range(0,12):        #y for all indexcode
+        pfBeta,pfSysVol,pfSpecVol = CalcStats(rDate[i],mktIndexCode[z],indexCode[0])
+        pfBeta_ALTI =np.append(pfBeta_ALTI,pfBeta)
+        pfSysVol_ALTI =np.append(pfSysVol_ALTI,pfSysVol)
         pfSpecVol_ALTI =np.append(pfSpecVol_ALTI,pfSpecVol)
         
-pfSpecVol_tbl['pfSpecVol_ALTI'] = pfSpecVol_ALTI          
+pfBeta_tbl['pfBeta_ALTI'] = pfBeta_ALTI
+pfSysVol_tbl['pfSysVol_ALTI'] = pfSysVol_ALTI
+pfSpecVol_tbl['pfSpecVol_ALTI'] = pfSpecVol_ALTI
+    
 
 
-# In[91]:
+# In[687]:
+
+
+pfBeta_tbl = pfBeta_tbl.drop(pfBeta_tbl.index[0]).reset_index(drop=True)
+pfBeta_tbl.head()
+
+# run only once or it will keep deleting your output
+
+
+# In[688]:
+
+
+
+Date_Index=BetasMktAndSpecVols_tbl.groupby(by=['Index_A','Date'],as_index = False)[['ALSIWeights','FLEDWeights']].sum()  
+Date_Index= Date_Index[(Date_Index['Index_A'] != 0)][['Date','Index_A']].reset_index(drop=True)
+# Just for get the date and in
+
+
+# In[79]:
+
+
+#Date_Index
+
+
+# In[689]:
+
+
+pfBetas =pfBeta_tbl.assign(Date = Date_Index['Date'],Index = Date_Index["Index_A"])
+pfBetas = pfBetas.iloc[:,np.r_[12:14,0:12]]
+
+
+# In[690]:
+
+
+pfBetas.rename(columns = {'Index': 'Index_A'}, inplace = True)
+pfBetas.head()
+
+
+# In[691]:
+
+
+pfSysVol_tbl = pfSysVol_tbl.drop(pfBeta_tbl.index[0]).reset_index(drop=True)
+pfSysVol_tbl.head()
+
+#Given as percentage
+# run only once or it will keep deleting your output
+
+
+# In[692]:
+
+
+pfSysVol =pfSysVol_tbl.assign(Date = Date_Index['Date'],Index = Date_Index["Index_A"])
+pfSysVol = pfSysVol.iloc[:,np.r_[12:14,0:12]]
+
+
+# In[693]:
+
+
+pfSysVol.rename(columns = {'Index': 'Index_A'}, inplace = True)
+pfSysVol.head()
+
+
+# In[694]:
 
 
 pfSpecVol_tbl = pfSpecVol_tbl.drop(pfSpecVol_tbl.index[0]).reset_index(drop=True)
@@ -1658,95 +1368,198 @@ pfSpecVol_tbl.head()
 # run only once or it will keep deleting your output
 
 
-# In[92]:
+# In[695]:
 
 
 pfSpecVol =pfSpecVol_tbl.assign(Date = Date_Index['Date'],Index = Date_Index["Index_A"])
 pfSpecVol = pfSpecVol.iloc[:,np.r_[12:14,0:12]]
 
 
-# In[93]:
+# In[696]:
 
 
-pfSpecVol[(pfSpecVol['Index'] == 'J200')]
+#pfSpecVol[(pfSpecVol['Index'] == 'J200')]
 
 
-# In[94]:
+# In[697]:
 
 
-pfSpecVol
+pfSpecVol.rename(columns = {'Index': 'Index_A'}, inplace = True)
+pfSpecVol.head()
 
 
-# In[95]:
+# In[89]:
 
 
-pfSpecVol.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfSpecVol.csv',index = False, header=True)
+#pfBetas.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfBetas.csv',index = False, header=True)
 
 
-# In[96]:
+# In[90]:
 
 
-#res = pfBetas.merge(IndustryWeights2, how='inner', left_on=['Date', 'Date'], right_on=['Index_A', 'Index_A'])
+#pfSysVol.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfSysVol.csv',index = False, header=True)
 
 
-# In[97]:
+# In[91]:
 
 
-IndustryWeights2[(IndustryWeights2['Date']==rDate[0]) & (IndustryWeights2['Index_A']=='J203')]
+#pfSpecVol.to_csv (r'C:\Users\ZL2706556\Documents\0.Personal_Career\INF5006S\Project\pfSpecVol.csv',index = False, header=True)
+
+
+# In[706]:
+
+
+Synthetic_tbl_temp= pd.merge(IndustryWeights2,pfSpecVol , how='left', on=['Date', 'Index_A'])
+Synthetic_tbl_temp= pd.merge(Synthetic_tbl_temp, pfSysVol, how='left', on=['Date', 'Index_A'])
+Synthetic_tbl_temp= pd.merge(Synthetic_tbl_temp, pfBetas, how='left', on=['Date', 'Index_A'])
+Synthetic_tbl_temp.head()
+
+
+# In[699]:
+
+
+Synthetic_tbl_temp.columns
+
+
+# In[700]:
+
+
+# Create industry specific stats
+Synthetic_tbl_temp['Beta_ALSI'] = Synthetic_tbl_temp['ALSIWeights']*Synthetic_tbl_temp['pfBeta_ALSI']
+Synthetic_tbl_temp['Beta_FLED'] = Synthetic_tbl_temp['FLEDWeights']*Synthetic_tbl_temp['pfBeta_FLED']
+Synthetic_tbl_temp['Beta_LRGC'] = Synthetic_tbl_temp['LRGCWeights']*Synthetic_tbl_temp['pfBeta_LRGC']
+Synthetic_tbl_temp['Beta_MIDC'] = Synthetic_tbl_temp['MIDCWeights']*Synthetic_tbl_temp['pfBeta_MIDC']
+Synthetic_tbl_temp['Beta_SMLC'] = Synthetic_tbl_temp['SMLCWeights']*Synthetic_tbl_temp['pfBeta_SMLC']
+Synthetic_tbl_temp['Beta_TOPI'] = Synthetic_tbl_temp['TOPIWeights']*Synthetic_tbl_temp['pfBeta_TOPI']
+Synthetic_tbl_temp['Beta_RESI'] = Synthetic_tbl_temp['RESIWeights']*Synthetic_tbl_temp['pfBeta_RESI']
+Synthetic_tbl_temp['Beta_FINI'] = Synthetic_tbl_temp['FINIWeights']*Synthetic_tbl_temp['pfBeta_FINI']
+Synthetic_tbl_temp['Beta_INDI'] = Synthetic_tbl_temp['INDIWeights']*Synthetic_tbl_temp['pfBeta_INDI']
+Synthetic_tbl_temp['Beta_PCAP'] = Synthetic_tbl_temp['PCAPWeights']*Synthetic_tbl_temp['pfBeta_PCAP']
+Synthetic_tbl_temp['Beta_SAPY'] = Synthetic_tbl_temp['SAPYWeights']*Synthetic_tbl_temp['pfBeta_SAPY']
+Synthetic_tbl_temp['Beta_ALTI'] = Synthetic_tbl_temp['ALTIWeights']*Synthetic_tbl_temp['pfBeta_ALTI']
+
+Synthetic_tbl_temp['SpecVol_ALSI'] = Synthetic_tbl_temp['ALSIWeights']*Synthetic_tbl_temp['pfSpecVol_ALSI']
+Synthetic_tbl_temp['SpecVol_FLED'] = Synthetic_tbl_temp['FLEDWeights']*Synthetic_tbl_temp['pfSpecVol_FLED']
+Synthetic_tbl_temp['SpecVol_LRGC'] = Synthetic_tbl_temp['LRGCWeights']*Synthetic_tbl_temp['pfSpecVol_LRGC']
+Synthetic_tbl_temp['SpecVol_MIDC'] = Synthetic_tbl_temp['MIDCWeights']*Synthetic_tbl_temp['pfSpecVol_MIDC']
+Synthetic_tbl_temp['SpecVol_SMLC'] = Synthetic_tbl_temp['SMLCWeights']*Synthetic_tbl_temp['pfSpecVol_SMLC']
+Synthetic_tbl_temp['SpecVol_TOPI'] = Synthetic_tbl_temp['TOPIWeights']*Synthetic_tbl_temp['pfSpecVol_TOPI']
+Synthetic_tbl_temp['SpecVol_RESI'] = Synthetic_tbl_temp['RESIWeights']*Synthetic_tbl_temp['pfSpecVol_RESI']
+Synthetic_tbl_temp['SpecVol_FINI'] = Synthetic_tbl_temp['FINIWeights']*Synthetic_tbl_temp['pfSpecVol_FINI']
+Synthetic_tbl_temp['SpecVol_INDI'] = Synthetic_tbl_temp['INDIWeights']*Synthetic_tbl_temp['pfSpecVol_INDI']
+Synthetic_tbl_temp['SpecVol_PCAP'] = Synthetic_tbl_temp['PCAPWeights']*Synthetic_tbl_temp['pfSpecVol_PCAP']
+Synthetic_tbl_temp['SpecVol_SAPY'] = Synthetic_tbl_temp['SAPYWeights']*Synthetic_tbl_temp['pfSpecVol_SAPY']
+Synthetic_tbl_temp['SpecVol_ALTI'] = Synthetic_tbl_temp['ALTIWeights']*Synthetic_tbl_temp['pfSpecVol_ALTI']
+
+Synthetic_tbl_temp['SysVol_ALSI'] = Synthetic_tbl_temp['ALSIWeights']*Synthetic_tbl_temp['pfSysVol_ALSI']
+Synthetic_tbl_temp['SysVol_FLED'] = Synthetic_tbl_temp['FLEDWeights']*Synthetic_tbl_temp['pfSysVol_FLED']
+Synthetic_tbl_temp['SysVol_LRGC'] = Synthetic_tbl_temp['LRGCWeights']*Synthetic_tbl_temp['pfSysVol_LRGC']
+Synthetic_tbl_temp['SysVol_MIDC'] = Synthetic_tbl_temp['MIDCWeights']*Synthetic_tbl_temp['pfSysVol_MIDC']
+Synthetic_tbl_temp['SysVol_SMLC'] = Synthetic_tbl_temp['SMLCWeights']*Synthetic_tbl_temp['pfSysVol_SMLC']
+Synthetic_tbl_temp['SysVol_TOPI'] = Synthetic_tbl_temp['TOPIWeights']*Synthetic_tbl_temp['pfSysVol_TOPI']
+Synthetic_tbl_temp['SysVol_RESI'] = Synthetic_tbl_temp['RESIWeights']*Synthetic_tbl_temp['pfSysVol_RESI']
+Synthetic_tbl_temp['SysVol_FINI'] = Synthetic_tbl_temp['FINIWeights']*Synthetic_tbl_temp['pfSysVol_FINI']
+Synthetic_tbl_temp['SysVol_INDI'] = Synthetic_tbl_temp['INDIWeights']*Synthetic_tbl_temp['pfSysVol_INDI']
+Synthetic_tbl_temp['SysVol_PCAP'] = Synthetic_tbl_temp['PCAPWeights']*Synthetic_tbl_temp['pfSysVol_PCAP']
+Synthetic_tbl_temp['SysVol_SAPY'] = Synthetic_tbl_temp['SAPYWeights']*Synthetic_tbl_temp['pfSysVol_SAPY']
+Synthetic_tbl_temp['SysVol_ALTI'] = Synthetic_tbl_temp['ALTIWeights']*Synthetic_tbl_temp['pfSysVol_ALTI']
+
+
+# In[707]:
+
+
+#Create the actual synthetic stat table
+# remove all columns starting with pf
+Synthetic_tbl  = Synthetic_tbl_temp[Synthetic_tbl_temp.columns.drop(list(Synthetic_tbl_temp.filter(regex='pf')))]
+Synthetic_tbl   
+
+#Okay final table for synthetic stat works
+
+
+# In[702]:
+
+
+pd.set_option('display.max_columns', None)
+print(Synthetic_tbl.head())
+
+
+# In[708]:
+
+
+Synthetic_tbl
+
+
+# In[709]:
+
+
+Synthetic_tbl.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Synthetic_tbl.csv',index = False, header=True)
+
+
+# In[710]:
+
+
+IndustryWeights2.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\IndustryWeights21.csv',index = False, header=True)
 
 
 # # END ####
 # ###EVERYTHING BELOW WAS USED TO BUILD FUNCTION 3
 
-# In[101]:
+# In[749]:
+
+
+Shares =  BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode[0]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5]) & (BetasMktAndSpecVols_tbl['TOPIWeights']> 0 )][['Instrument']].head(8)
+Shares_ofinterest = Shares.Instrument.tolist()
+Shares_ofinterest
+
+
+# In[750]:
 
 
 # Creating Diagonal matrices S and D
-s = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[5]) & (BetasMktAndSpecVols_tbl['Index_A'] == 'J200') 
-                        & (BetasMktAndSpecVols_tbl['Indices'] == 'ALSI')]['specVols']
-S =np.diag(s) 
+
+s = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode[0]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5]) & (BetasMktAndSpecVols_tbl['TOPIWeights']> 0 )]['specVols'].head(8)
+
+Shares_Check = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode[0]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5]) & (BetasMktAndSpecVols_tbl['TOPIWeights']> 0 )]['Instrument'].head(8)
+S = np.diag(s) 
 
 
+print(Shares_Check)
+print(S)
+print(s)
 
-# print(s)
-# print(S)
 
-
-# In[102]:
+# In[167]:
 
 
 BetasMktAndSpecVols_tbl.columns
 
 
-# In[104]:
+# In[386]:
 
 
-m = mktVol_tbl[(mktVol_tbl['Date']==rDate[0]) & (mktVol_tbl['Instrument']==mktIndexCode[0])]['mktVol']
-m
+pd.set_option('display.max_columns', None)
+BetasMktAndSpecVols_tbl.head()
 
 
-# In[105]:
+# In[751]:
 
 
-B = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == 'J200') 
-                        & (BetasMktAndSpecVols_tbl['Indices'] == 'ALSI')]['Beta']
+B =  BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode[0]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5]) & (BetasMktAndSpecVols_tbl['TOPIWeights']> 0 )]['Beta'].head(8)
 B = np.array(B)    # Create numpy arrays
 m = mktVol_tbl[(mktVol_tbl['Date']==rDate[0]) & (mktVol_tbl['Instrument']==mktIndexCode[0])]['mktVol']
+print(m)
 m = m.item()
-# s = np.array(S)
-w = BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == 'J200') 
-                        & (BetasMktAndSpecVols_tbl['Indices'] == 'ALSI')]['ALSI'+'Weights']
+
+w =  BetasMktAndSpecVols_tbl[(BetasMktAndSpecVols_tbl['Date'] == rDate[0]) & (BetasMktAndSpecVols_tbl['Index_A'] == mktIndexCode[0]) 
+                        & (BetasMktAndSpecVols_tbl['Indices'] ==indexCode[5]) & (BetasMktAndSpecVols_tbl['TOPIWeights']> 0 )]['TOPI'+'Weights'].head(8)
 w = np.array(w)
-print(w)
 
 
-# In[ ]:
-
-
-set(BetasMktAndSpecVols_tbl[ (BetasMktAndSpecVols_tbl['Indices'] == 'ALSI')]['Date'])
-
-
-# In[ ]:
+# In[752]:
 
 
 B = np.nan_to_num(B)
@@ -1755,7 +1568,7 @@ w = np.nan_to_num(w)
 print(w)
 
 
-# In[ ]:
+# In[753]:
 
 
 #  fixing the matrices shape
@@ -1765,7 +1578,7 @@ wT = w.transpose()      #transpose w for a 1-D array Numpy cant tell the differe
 bT = B.transpose()
 
 
-# In[ ]:
+# In[754]:
 
 
 # If number of row is different for any of the measurements then something is wrong
@@ -1776,15 +1589,7 @@ print(wT.shape)
 print(bT.shape)
 
 
-# In[ ]:
-
-
-
-print(w)
-print(w.shape)
-
-
-# In[ ]:
+# In[110]:
 
 
 # # aT = np.array(w)[np.newaxis] results in the correct transposing of w
@@ -1794,7 +1599,7 @@ print(w.shape)
 # bT = B.transpose() 
 
 
-# In[ ]:
+# In[755]:
 
 
 print(wT.shape)
@@ -1807,9 +1612,12 @@ print(type(m))
 
 # ### Portfolio Beta
 
-# In[ ]:
+# In[756]:
 
 
+#(1, 5)*(5, 1)
+
+# expected (1,1)
 Portfolio_Beta = wT.dot(B)
 
 print(Portfolio_Beta)  # previous answer is CHANGES
@@ -1817,25 +1625,39 @@ print(Portfolio_Beta)  # previous answer is CHANGES
 
 # ### Systematic_Covariance_Matrix 
 
-# In[ ]:
+# In[757]:
 
 
 # Systematic_Covariance_Matrix = B.dot(bT)*(m**2)   # Also works
-#(1, 314)*(314, 1)
+#(5, 1)*(1, 5)
+# expect a (5,5) matrix
 Systematic_Covariance_Matrix = np.dot(B,bT)*(m**2) 
 print(Systematic_Covariance_Matrix.shape)
 print(Systematic_Covariance_Matrix) 
 
 
+# In[758]:
+
+
+df_Systematic_Covariance_Matrix = pd.DataFrame(Systematic_Covariance_Matrix,columns= Shares_ofinterest , index = Shares_ofinterest)
+df_Systematic_Covariance_Matrix
+
+
+# In[325]:
+
+
+df_Systematic_Covariance_Matrix.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\df_Systematic_Covariance_Matrix.csv',index = True, header=True)
+
+
 # ### Portfolio_Systematic_Variance
 
-# In[ ]:
+# In[759]:
 
 
-#(1*314)(314*1)x(1*314)x(314*1)x(314*1)
-#(1*1)(1*314)x(314*1)x(314*1)
-#(1*314)(314*1)x(314*1)
-#(1*1)x(314*1)
+#(1, 5)(5, 1)*(1, 5)*(5, 1)
+#(1,1)(1,5)*(5,1)
+#(1,5)*(5,1)
+#expected (1,1)
 
 Portfolio_Systematic_Variance = np.dot(np.dot(np.dot(wT,B),bT),w)*(m**2)
 Portfolio_Systematic_Variance                                          
@@ -1843,21 +1665,34 @@ Portfolio_Systematic_Variance
 
 # ### Specific_Covariance_Matrix
 
-# In[ ]:
+# In[760]:
+
 
 
 Specific_Covariance_Matrix = S**2
 print(Specific_Covariance_Matrix)
 
 
+# In[761]:
+
+
+df_Specific_Covariance_Matrix = pd.DataFrame(Specific_Covariance_Matrix,columns= Shares_ofinterest , index = Shares_ofinterest)
+df_Specific_Covariance_Matrix
+
+
+# In[326]:
+
+
+df_Specific_Covariance_Matrix.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\df_Specific_Covariance_Matrix.csv',index = True, header=True)
+
+
 # ### Portfolio_Specific_Variance
 
-# In[ ]:
+# In[762]:
 
 
-#(1*314)(314*314) x (314*1)
-#(1*314) x (314*1)
-#(1*1)    single value to be expected
+#(1, 5)(5, 5)*(5, 1)
+#(1,1)    single value to be expected
 
 Portfolio_Spefic_Variance = np.dot(np.dot(wT,S**2),w)
 print(Portfolio_Spefic_Variance)
@@ -1865,40 +1700,68 @@ print(Portfolio_Spefic_Variance)
 
 # ### Total_Covariance_Matrix 
 
-# In[ ]:
+# In[763]:
 
 
+#(5, 1)(1,5)
+#(5,5)
 Total_Covariance_Matrix = np.dot(B,bT)*(m**2) + S**2
 
 print(Total_Covariance_Matrix)
 
 
+# In[764]:
+
+
+df_Total_Covariance_Matrix = pd.DataFrame(Total_Covariance_Matrix,columns= Shares_ofinterest , index = Shares_ofinterest)
+df_Total_Covariance_Matrix
+
+
+# In[327]:
+
+
+df_Total_Covariance_Matrix.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\df_Total_Covariance_Matrix.csv',index = True, header=True)
+
+
 # ### Portfolio_Variance 
 
-# In[ ]:
+# In[765]:
 
 
 Portfolio_Variance = np.dot(np.dot(np.dot(wT,B),bT),w)*(m**2) + np.dot(np.dot(wT,S**2),w)
 print(Portfolio_Variance)     # should result in single value
 
 
-# In[ ]:
+# In[767]:
 
 
-D = Total_Covariance_Matrix.diagonal()
+d = Total_Covariance_Matrix.diagonal()
+D = np.sqrt(d)
 D = np.diag(D)
 print(D.shape)
 print(D)
-D_inv =  np.linalg.inv(D)  # says determinant of matrix is zero, thus singular matrix
-#D_inv =  np.invert(D)   # also doesnt work for some reason
+D_inv =  np.linalg.pinv(D)  
+
 
 
 # ### Correlation Matrix
 # 
 
-# In[ ]:
+# In[768]:
 
 
-# Need to fix the issue of my inverse D
-D_inv.dot(B.dot(bT))*(m**2) + S**2
+Corr_Mat = np.dot(np.dot(D_inv,Total_Covariance_Matrix),D_inv)
+
+
+# In[769]:
+
+
+df_Correlation_Matrix = pd.DataFrame(Corr_Mat,columns= Shares_ofinterest , index = Shares_ofinterest)
+df_Correlation_Matrix
+
+
+# In[328]:
+
+
+df_Correlation_Matrix.to_csv (r'C:\Users\27605\Documents\0.Personal Career\INF5006S\df_Correlation_Matrix.csv',index = True, header=True)
 
