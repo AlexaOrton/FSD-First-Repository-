@@ -19,12 +19,14 @@
                     <div class="border p-3 p-md-5 bg-white rounded shadow">
                         <h2 class="text-dark">Page Index</h2>
                         <form>
-                            <div class="form-group text-dark">
+                            <div class="form-group text-dark text-left">
                                 <button v-scroll-to="'#betaplots'">Beta Plots</button>
                                 <br>
-                                <button v-scroll-to="'#fiddle'">ALL C's Weights</button>
+                                <button v-scroll-to="'#AllC'">ALL C's Weights</button>
                                 <br>
                                 <button v-scroll-to="'#synweights'">Systhetic Statistics Decomposition</button>
+                                <br>
+                                <button v-scroll-to="'#ba_table'">BA Output Table</button>
                             </div>
                         </form>
                     </div>
@@ -55,6 +57,8 @@
 </div>
 
 
+
+
 <div id="synweights" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">Synthetic Index Statistics Decomposition</h3>
     <div id="synthetic_weights"></div>
@@ -64,7 +68,7 @@
 </div>
 
 
-<div id="fiddle" class="container-fluid m-0 p-0 full-height bg-light">
+<div id="AllC" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4"> All C's Weights</h3>
     <div id="dashboard">
     <table>
@@ -87,6 +91,30 @@
 </div>
 
 
+<div id="ba_table" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4">BA Output Test</h3>
+    <div id="ba_output">
+          <div class="row">
+      <div class="col-lg p-4" >
+    <!--Div that will hold the dashboard-->
+    
+      <!--Divs that will hold each control and chart-->
+      <div id="date_filter"></div>
+      <br>
+      <div id="ba_index"></div>
+      <br>
+      <div id="ba_share"></div>
+
+  
+      </div>
+
+      <div class="col-lg">
+      <div id="ba_chart"></div>
+      </div>
+    </div>
+    <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
+</div>
+</div>
 
 
 
