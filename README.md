@@ -1,7 +1,8 @@
 # FSD-First-Repository-
-Version control for the AIFMRM ERS Dashboard
+Welcome to the AIFMRM ERS Dashboard!
 
 EXPLANATION
+This dashboard has been designed to disseminate Equity Risk Statistic data provided by AIFMRM in an intuitive and interactive manner.
 
 INSTRUCTIONS
 
