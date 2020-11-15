@@ -22,11 +22,13 @@
                             <div class="form-group text-dark text-left">
                                 <button v-scroll-to="'#betaplots'">Beta Plots</button>
                                 <br>
-                                <button v-scroll-to="'#AllC'">ALL C's Weights</button>
-                                <br>
                                 <button v-scroll-to="'#synweights'">Systhetic Statistics Decomposition</button>
                                 <br>
                                 <button v-scroll-to="'#ba_table'">BA Output Table</button>
+                                <br>
+                                <button v-scroll-to="'#AllC'">ALL C's Weights</button>
+                                <br>
+                                <button v-scroll-to="'#quant_tables'">Quants Tables</button>
                             </div>
                         </form>
                     </div>
@@ -67,30 +69,6 @@
     <div id="synthetic_sys"></div>
 </div>
 
-
-<div id="AllC" class="container-fluid m-0 p-0 full-height bg-light">
-    <h3 class="text-dark p-4"> All C's Weights</h3>
-    <div id="dashboard">
-    <table>
-        <tr style='vertical-align: top'>
-            <td style='width: 300px; font-size: 0.9em;'>
-                <div id="control1"></div>
-                <div id="filter_div4"></div>
-                <div id="superfilter_div"></div>
-                <div id="subfilter_div"></div>
-                <div id="filter_div3"></div>
-                <div id="control2"></div>
-
-            </td>
-            <td style='width: 600px'>
-                <div style="float: left;" id="chart1"></div>
-            </td>
-        </tr>
-    </table>
-</div>
-</div>
-
-
 <div id="ba_table" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">BA Output Test</h3>
     <div id="ba_output">
@@ -119,6 +97,69 @@
 
 
 
+<div id="AllC" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4"> All C's Weights</h3>
+    <div id="dashboard">
+    <table>
+        <tr style='vertical-align: top'>
+            <td style='width: 300px; font-size: 0.9em;'>
+                <div id="control1"></div>
+                <div id="filter_div4"></div>
+                <div id="superfilter_div"></div>
+                <div id="subfilter_div"></div>
+                <div id="filter_div3"></div>
+                <div id="control2"></div>
+
+            </td>
+            <td style='width: 600px'>
+                <div style="float: left;" id="chart1"></div>
+            </td>
+        </tr>
+    </table>
+</div>
+</div>
+
+
+
+<div id="quant_tables" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4">Quantitative Analyst</h3>
+    <div class="row">
+         <div class="col-lg">
+            <img id= "image-img" src="../assets/image.png" class="img-fluig">
+        </div>
+        
+        <div class="col-lg">
+            <h4 class="text-dark">Portfolio Specific Risk</h4>
+            <h5 class="text-dark">Specific Covariance Matrix</h5>
+            <div id="specific_table"></div>
+            <h6 class="text-dark">Portfolio Specific Risk = 0.00063833</h6>
+        </div>
+    </div>
+
+    <div class="row">
+         <div class="col-lg">
+            <h4 class="text-dark">Portfolio Systematic Risk</h4>
+            <h5 class="text-dark">Portfolio Beta = 0.19959</h5>
+            <h5 class="text-dark">Systematic Covariance Matrix</h5>
+            <div id="systematic_table"></div>
+            <h6 class="text-dark">Portfolio Systematic Risk = 0.00058167</h6>
+        </div>
+        
+        <div class="col-lg">
+            <h4 class="text-dark">Total Covariance</h4>
+            <h5 class="text-dark">Total Covariance Matrix</h5>
+            <div id="total_cov_table"></div>
+        </div>
+
+        <div class="col-lg">
+            <h4 class="text-dark">Portfolio Variance</h4>
+            <h5 class="text-dark">Correlation Matrix</h5>
+            <div id="port_cov_table"></div>
+            <h6 class="text-dark">Portfolio Variance = 0.00121999</h6>
+        </div>
+
+    </div>
+</div>
 
 
 <div id = "about" class="bg-light p-3 p-md-5">
