@@ -1,0 +1,1442 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Aug 21 12:28:38 2020
+
+@author: besti, zipho
+"""
+   
+import pandas as pd
+import pyodbc
+
+""" 
+0. Import Raw Data
+   0.0 Establish connection with SQL Database
+   0.1 Import Index Constituents
+   0.2 Import Industry Classification Benchmark
+   0.3 Import BA Beta Output
+"""
+# 0.0 Establish connection with SQL Database
+conn = pyodbc.connect(  'Driver={SQL Server};'
+                        'Server=ZIPHO-WORKSTATI\SQLEXPRESS;'
+                        'Database=AIFMRM_ERS;'
+                        'Trusted_Connection=yes;')
+cursor = conn.cursor
+
+# 0.1 Import Index Constituents
+tbl_Index_Constituents = pd.read_sql_query('SELECT * FROM dbo.tbl_Index_Constituents',conn)
+tbl_Index_Constituents = tbl_Index_Constituents[['Date', 'Rank','Alpha' ,'Instrument', 'ICB Sub-Sector', 'Gross Market Capitalisation', 
+                                                'ALSI New', 'Index New', 'TOPI New', 'DTOP New', 'RESI New', 'FINI New', 'INDI New',
+                                                 'PCAP New', 'SAPY New', 'ALTI New']]
+print(tbl_Index_Constituents)
+print(type(tbl_Index_Constituents))    
+#[4331 rows x 46 columns]
+
+# 0.2 Import Industry Classification Benchmark
+tbl_Industry_Classification_Benchmark = pd.read_sql_query('SELECT * FROM dbo.tbl_Industry_Classification_Benchmark',conn)
+tbl_Industry_Classification_Benchmark = tbl_Industry_Classification_Benchmark[['Industry', 'Super Sector','Sector' ,'Sub-Sector Code', 'Sub-Sector']]
+print(tbl_Industry_Classification_Benchmark)
+print(type(tbl_Industry_Classification_Benchmark))
+#[114 rows x 8 columns]
+
+# 0.3 Import BA Beta Output
+tbl_BA_Beta_Output = pd.read_sql_query('SELECT * FROM dbo.tbl_BA_Beta_Output',conn)
+tbl_BA_Beta_Output = tbl_BA_Beta_Output[['Date','Instrument','Index','Beta','Total Risk','Unique Risk']]
+print(tbl_BA_Beta_Output)
+print(type(tbl_BA_Beta_Output))  
+#[26710 rows x 16 columns]
+
+
+# In[2]:
+
+
+tbl_Index_Constituents  = tbl_Index_Constituents.rename(columns = {'Instrument': 'Companies'}, inplace = False)
+# GetICsAndWeights_test = GetICsAndWeights_test.drop('Instrument',1)  
+tbl_Index_Constituents = tbl_Index_Constituents.rename(columns = {'Alpha': 'Instrument'}, inplace = False)
+print(tbl_Index_Constituents)
+
+
+# In[3]:
+
+
+# import pandas as pd
+
+# tbl_Index_Constituents =  pd.read_excel('tbl_Index_Constituents.xlsx', delimiter='\t')
+# print(tbl_Index_Constituents)
+# #set(tbl_Index_Constituents['Alpha'])  #sharecode
+
+
+# In[4]:
+
+
+#rDate = (tbl_Index_Constituents['Date']).max()
+rDate = sorted(list(set(tbl_Index_Constituents['Date'])))
+type(rDate)
+rDate
+#or item in rDate:
+    #rint(item)
+#print(rDate.iloc[:,])
+
+
+# In[5]:
+
+
+rDate
+
+
+# In[6]:
+
+
+IC_0 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[0]]
+IC_1 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[1]]
+IC_2 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[2]]
+IC_3 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[3]]
+IC_4 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[4]]
+IC_5 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[5]]
+IC_6 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[6]]
+IC_7 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[7]]
+IC_8 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[8]]
+IC_9 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[9]]
+IC_10 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[10]]
+IC_11 = tbl_Index_Constituents.loc[tbl_Index_Constituents['Date'] == rDate[11]]
+
+#tbl_IC_1= pd.concat([IC_0, IC_1 + IC_2 + IC_3 + IC_4  + IC_5 + IC_6 + IC_7 + IC_8 + IC_9 + IC_10 + IC_11])
+#print(tbl_IC_Recent_1)
+print(IC_0)
+print(len(IC_4))
+
+
+# In[7]:
+
+
+indexCode = ['ALSI','FLED','LRGC','MIDC','SMLC','TOPI','RESI','FINI','INDI','PCAP','SAPY' ,'ALTI']
+GetICs_0 = IC_0[(IC_0['ALSI New'] == indexCode[0]) |
+                (IC_0['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_0['Index New'] ==indexCode[2]) |
+                (IC_0['Index New'] ==indexCode[3]) |
+                (IC_0['Index New'] ==indexCode[4]) |
+                (IC_0['TOPI New'] == indexCode[5]) |
+                (IC_0['RESI New'] == indexCode[6]) | 
+                (IC_0['FINI New'] == indexCode[7]) |
+                (IC_0['INDI New'] == indexCode[8]) | 
+                (IC_0['PCAP New'] == indexCode[9]) | 
+                (IC_0['SAPY New'] == indexCode[10])| 
+                (IC_0['ALTI New'] == indexCode[11])]
+
+GetICs_1 = IC_1[(IC_1['ALSI New'] == indexCode[0]) |
+                (IC_1['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_1['Index New'] ==indexCode[2]) |
+                (IC_1['Index New'] ==indexCode[3]) |
+                (IC_1['Index New'] ==indexCode[4]) |
+                (IC_1['TOPI New'] == indexCode[5]) |
+                (IC_1['RESI New'] == indexCode[6]) | 
+                (IC_1['FINI New'] == indexCode[7]) |
+                (IC_1['INDI New'] == indexCode[8]) | 
+                (IC_1['PCAP New'] == indexCode[9]) | 
+                (IC_1['SAPY New'] == indexCode[10])| 
+                (IC_1['ALTI New'] == indexCode[11])]
+
+GetICs_2 = IC_2[(IC_2['ALSI New'] == indexCode[0]) |
+                (IC_2['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_2['Index New'] ==indexCode[2]) |
+                (IC_2['Index New'] ==indexCode[3]) |
+                (IC_2['Index New'] ==indexCode[4]) |
+                (IC_2['TOPI New'] == indexCode[5]) |
+                (IC_2['RESI New'] == indexCode[6]) | 
+                (IC_2['FINI New'] == indexCode[7]) |
+                (IC_2['INDI New'] == indexCode[8]) | 
+                (IC_2['PCAP New'] == indexCode[9]) | 
+                (IC_2['SAPY New'] == indexCode[10])| 
+                (IC_2['ALTI New'] == indexCode[11])]            
+
+GetICs_3 = IC_3[(IC_3['ALSI New'] == indexCode[0]) |
+                (IC_3['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_3['Index New'] ==indexCode[2]) |
+                (IC_3['Index New'] ==indexCode[3]) |
+                (IC_3['Index New'] ==indexCode[4]) |
+                (IC_3['TOPI New'] == indexCode[5]) |
+                (IC_3['RESI New'] == indexCode[6]) | 
+                (IC_3['FINI New'] == indexCode[7]) |
+                (IC_3['INDI New'] == indexCode[8]) | 
+                (IC_3['PCAP New'] == indexCode[9]) | 
+                (IC_3['SAPY New'] == indexCode[10])| 
+                (IC_3['ALTI New'] == indexCode[11])]   
+
+GetICs_4 = IC_4[(IC_4['ALSI New'] == indexCode[0]) |
+                (IC_4['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_4['Index New'] ==indexCode[2]) |
+                (IC_4['Index New'] ==indexCode[3]) |
+                (IC_4['Index New'] ==indexCode[4]) |
+                (IC_4['TOPI New'] == indexCode[5]) |
+                (IC_4['RESI New'] == indexCode[6]) | 
+                (IC_4['FINI New'] == indexCode[7]) |
+                (IC_4['INDI New'] == indexCode[8]) | 
+                (IC_4['PCAP New'] == indexCode[9]) | 
+                (IC_4['SAPY New'] == indexCode[10])| 
+                (IC_4['ALTI New'] == indexCode[11])]   
+
+GetICs_5 = IC_5[(IC_5['ALSI New'] == indexCode[0]) |
+                (IC_5['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_5['Index New'] ==indexCode[2]) |
+                (IC_5['Index New'] ==indexCode[3]) |
+                (IC_5['Index New'] ==indexCode[4]) |
+                (IC_5['TOPI New'] == indexCode[5]) |
+                (IC_5['RESI New'] == indexCode[6]) | 
+                (IC_5['FINI New'] == indexCode[7]) |
+                (IC_5['INDI New'] == indexCode[8]) | 
+                (IC_5['PCAP New'] == indexCode[9]) | 
+                (IC_5['SAPY New'] == indexCode[10])| 
+                (IC_5['ALTI New'] == indexCode[11])]   
+
+GetICs_6 = IC_6[(IC_6['ALSI New'] == indexCode[0]) |
+                (IC_6['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_6['Index New'] ==indexCode[2]) |
+                (IC_6['Index New'] ==indexCode[3]) |
+                (IC_6['Index New'] ==indexCode[4]) |
+                (IC_6['TOPI New'] == indexCode[5]) |
+                (IC_6['RESI New'] == indexCode[6]) | 
+                (IC_6['FINI New'] == indexCode[7]) |
+                (IC_6['INDI New'] == indexCode[8]) | 
+                (IC_6['PCAP New'] == indexCode[9]) | 
+                (IC_6['SAPY New'] == indexCode[10])| 
+                (IC_6['ALTI New'] == indexCode[11])]   
+
+GetICs_7 = IC_7[(IC_7['ALSI New'] == indexCode[0]) |
+                (IC_7['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_7['Index New'] ==indexCode[2]) |
+                (IC_7['Index New'] ==indexCode[3]) |
+                (IC_7['Index New'] ==indexCode[4]) |
+                (IC_7['TOPI New'] == indexCode[5]) |
+                (IC_7['RESI New'] == indexCode[6]) | 
+                (IC_7['FINI New'] == indexCode[7]) |
+                (IC_7['INDI New'] == indexCode[8]) | 
+                (IC_7['PCAP New'] == indexCode[9]) | 
+                (IC_7['SAPY New'] == indexCode[10])| 
+                (IC_7['ALTI New'] == indexCode[11])]   
+
+GetICs_8 = IC_8[(IC_8['ALSI New'] == indexCode[0]) |
+                (IC_8['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_8['Index New'] ==indexCode[2]) |
+                (IC_8['Index New'] ==indexCode[3]) |
+                (IC_8['Index New'] ==indexCode[4]) |
+                (IC_8['TOPI New'] == indexCode[5]) |
+                (IC_8['RESI New'] == indexCode[6]) | 
+                (IC_8['FINI New'] == indexCode[7]) |
+                (IC_8['INDI New'] == indexCode[8]) | 
+                (IC_8['PCAP New'] == indexCode[9]) | 
+                (IC_8['SAPY New'] == indexCode[10])| 
+                (IC_8['ALTI New'] == indexCode[11])]  
+
+GetICs_9 = IC_9[(IC_9['ALSI New'] == indexCode[0]) |
+                (IC_9['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_9['Index New'] ==indexCode[2]) |
+                (IC_9['Index New'] ==indexCode[3]) |
+                (IC_9['Index New'] ==indexCode[4]) |
+                (IC_9['TOPI New'] == indexCode[5]) |
+                (IC_9['RESI New'] == indexCode[6]) | 
+                (IC_9['FINI New'] == indexCode[7]) |
+                (IC_9['INDI New'] == indexCode[8]) | 
+                (IC_9['PCAP New'] == indexCode[9]) | 
+                (IC_9['SAPY New'] == indexCode[10])| 
+                (IC_9['ALTI New'] == indexCode[11])]   
+
+GetICs_10 = IC_10[(IC_10['ALSI New'] == indexCode[0]) |
+                (IC_10['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_10['Index New'] ==indexCode[2]) |
+                (IC_10['Index New'] ==indexCode[3]) |
+                (IC_10['Index New'] ==indexCode[4]) |
+                (IC_10['TOPI New'] == indexCode[5]) |
+                (IC_10['RESI New'] == indexCode[6]) | 
+                (IC_10['FINI New'] == indexCode[7]) |
+                (IC_10['INDI New'] == indexCode[8]) | 
+                (IC_10['PCAP New'] == indexCode[9]) | 
+                (IC_10['SAPY New'] == indexCode[10])| 
+                (IC_10['ALTI New'] == indexCode[11])]   
+
+GetICs_11 = IC_11[(IC_11['ALSI New'] == indexCode[0]) |
+                (IC_11['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+                (IC_11['Index New'] ==indexCode[2]) |
+                (IC_11['Index New'] ==indexCode[3]) |
+                (IC_11['Index New'] ==indexCode[4]) |
+                (IC_11['TOPI New'] == indexCode[5]) |
+                (IC_11['RESI New'] == indexCode[6]) | 
+                (IC_11['FINI New'] == indexCode[7]) |
+                (IC_11['INDI New'] == indexCode[8]) | 
+                (IC_11['PCAP New'] == indexCode[9]) | 
+                (IC_11['SAPY New'] == indexCode[10])| 
+                (IC_11['ALTI New'] == indexCode[11])] 
+
+print(len(GetICs_4['Date']))    # 48 share where filtered out 
+print(GetICs_1.head(3))
+print(GetICs_2.head(3))
+print(GetICs_3.head(3))
+print(GetICs_4.head(3))
+print(GetICs_5.head(3))
+
+
+# In[8]:
+
+
+# # Now I need wieghts per index and per quarter period
+# # I need the market cape for each one of these
+# # get the sum for the gross market cape for the  quarter  which will divide into the market cap of each individual share 
+# GMC_0 = IC_0[(IC_0['ALSI New'] == indexCode[0]) |
+#                 (IC_0['ALSI New'] == indexCode[1]) |# Search each column for ALSI or FLED
+#                 (IC_0['Index New'] ==indexCode[2]) |
+#                 (IC_0['Index New'] ==indexCode[3]) |
+#                 (IC_0['Index New'] ==indexCode[4]) |
+#                 (IC_0['TOPI New'] == indexCode[5]) |
+#                 (IC_0['RESI New'] == indexCode[6]) | 
+#                 (IC_0['FINI New'] == indexCode[7]) |
+#                 (IC_0['INDI New'] == indexCode[8]) | 
+#                 (IC_0['PCAP New'] == indexCode[9]) | 
+#                 (IC_0['SAPY New'] == indexCode[10])| 
+#                 (IC_0['ALTI New'] == indexCode[11])]
+
+
+# In[9]:
+
+
+# #print(IC_0['ALSI New'==indexCode[0]]
+# print(IC_0.loc[IC_0['ALSI New'] == indexCode[0]])
+
+
+# In[10]:
+
+
+GMC_IC0_0 = IC_0[IC_0['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC0_1 = IC_0[IC_0['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_2 = IC_0[IC_0['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_3 = IC_0[IC_0['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC0_4 = IC_0[IC_0['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_5 = IC_0[IC_0['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_6 = IC_0[IC_0['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC0_7 = IC_0[IC_0['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_8 = IC_0[IC_0['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_9 = IC_0[IC_0['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC0_10= IC_0[IC_0['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC0_11= IC_0[IC_0['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum() 
+
+GMC_IC1_0 = IC_1[IC_1['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC1_1 = IC_1[IC_1['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_2 = IC_1[IC_1['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_3 = IC_1[IC_1['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC1_4 = IC_1[IC_1['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_5 = IC_1[IC_1['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_6 = IC_1[IC_1['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC1_7 = IC_1[IC_1['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_8 = IC_1[IC_1['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_9 = IC_1[IC_1['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC1_10= IC_1[IC_1['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC1_11= IC_1[IC_1['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC2_0 = IC_2[IC_2['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC2_1 = IC_2[IC_2['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_2 = IC_2[IC_2['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_3 = IC_2[IC_2['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC2_4 = IC_2[IC_2['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_5 = IC_2[IC_2['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_6 = IC_2[IC_2['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC2_7 = IC_2[IC_2['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_8 = IC_2[IC_2['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_9 = IC_2[IC_2['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC2_10= IC_2[IC_2['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC2_11= IC_2[IC_2['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC3_0 = IC_3[IC_3['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC3_1 = IC_3[IC_3['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_2 = IC_3[IC_3['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_3 = IC_3[IC_3['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC3_4 = IC_3[IC_3['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_5 = IC_3[IC_3['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_6 = IC_3[IC_3['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC3_7 = IC_3[IC_3['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_8 = IC_3[IC_3['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_9 = IC_3[IC_3['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC3_10= IC_3[IC_3['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC3_11= IC_3[IC_3['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC4_0 = IC_4[IC_4['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC4_1 = IC_4[IC_4['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_2 = IC_4[IC_4['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_3 = IC_4[IC_4['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC4_4 = IC_4[IC_4['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_5 = IC_4[IC_4['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_6 = IC_4[IC_4['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC4_7 = IC_4[IC_4['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_8 = IC_4[IC_4['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_9 = IC_4[IC_4['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC4_10= IC_4[IC_4['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC4_11= IC_4[IC_4['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC5_0 = IC_5[IC_5['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC5_1 = IC_5[IC_5['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_2 = IC_5[IC_5['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_3 = IC_5[IC_5['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC5_4 = IC_5[IC_5['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_5 = IC_5[IC_5['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_6 = IC_5[IC_5['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC5_7 = IC_5[IC_5['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_8 = IC_5[IC_5['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_9 = IC_5[IC_5['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC5_10= IC_5[IC_5['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC5_11= IC_5[IC_5['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC6_0 = IC_6[IC_6['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC6_1 = IC_6[IC_6['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_2 = IC_6[IC_6['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_3 = IC_6[IC_6['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC6_4 = IC_6[IC_6['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_5 = IC_6[IC_6['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_6 = IC_6[IC_6['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC6_7 = IC_6[IC_6['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_8 = IC_6[IC_6['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_9 = IC_6[IC_6['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC6_10= IC_6[IC_6['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC6_11= IC_6[IC_6['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum() 
+
+GMC_IC7_0 = IC_7[IC_7['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC7_1 = IC_7[IC_7['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_2 = IC_7[IC_7['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_3 = IC_7[IC_7['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC7_4 = IC_7[IC_7['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_5 = IC_7[IC_7['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_6 = IC_7[IC_7['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC7_7 = IC_7[IC_7['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_8 = IC_7[IC_7['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_9 = IC_7[IC_7['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC7_10= IC_7[IC_7['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC7_11= IC_7[IC_7['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC8_0 = IC_8[IC_8['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC8_1 = IC_8[IC_8['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_2 = IC_8[IC_8['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_3 = IC_8[IC_8['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC8_4 = IC_8[IC_8['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_5 = IC_8[IC_8['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_6 = IC_8[IC_8['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC8_7 = IC_8[IC_8['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_8 = IC_8[IC_8['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_9 = IC_8[IC_8['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC8_10= IC_8[IC_8['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC8_11= IC_8[IC_8['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC9_0 = IC_9[IC_9['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC9_1 = IC_9[IC_9['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_2 = IC_9[IC_9['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_3 = IC_9[IC_9['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC9_4 = IC_9[IC_9['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_5 = IC_9[IC_9['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_6 = IC_9[IC_9['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC9_7 = IC_9[IC_9['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_8 = IC_9[IC_9['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_9 = IC_9[IC_9['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC9_10= IC_9[IC_9['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC9_11= IC_9[IC_9['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC10_0 = IC_10[IC_10['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC10_1 = IC_10[IC_10['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_2 = IC_10[IC_10['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_3 = IC_10[IC_10['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC10_4 = IC_10[IC_10['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_5 = IC_10[IC_10['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_6 = IC_10[IC_10['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC10_7 = IC_10[IC_10['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_8 = IC_10[IC_10['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_9 = IC_10[IC_10['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC10_10= IC_10[IC_10['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC10_11= IC_10[IC_10['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum()
+
+GMC_IC11_0 = IC_11[IC_11['ALSI New'] == indexCode[0]]['Gross Market Capitalisation'].sum() 
+GMC_IC11_1 = IC_11[IC_11['ALSI New'] == indexCode[1]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_2 = IC_11[IC_11['Index New'] ==indexCode[2]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_3 = IC_11[IC_11['Index New'] ==indexCode[3]]['Gross Market Capitalisation'].sum() 
+GMC_IC11_4 = IC_11[IC_11['Index New'] ==indexCode[4]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_5 = IC_11[IC_11['TOPI New'] == indexCode[5]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_6 = IC_11[IC_11['RESI New'] == indexCode[6]]['Gross Market Capitalisation'].sum()   
+GMC_IC11_7 = IC_11[IC_11['FINI New'] == indexCode[7]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_8 = IC_11[IC_11['INDI New'] == indexCode[8]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_9 = IC_11[IC_11['PCAP New'] == indexCode[9]]['Gross Market Capitalisation'].sum()  
+GMC_IC11_10= IC_11[IC_11['SAPY New'] == indexCode[10]]['Gross Market Capitalisation'].sum() 
+GMC_IC11_11= IC_11[IC_11['ALTI New'] == indexCode[11]]['Gross Market Capitalisation'].sum() 
+
+print(GMC_IC0_0)        # Matches SQL value
+print(GMC_IC11_11)
+
+
+# In[11]:
+
+
+#IC0-IC11 gives the wieght per index for the given quarter
+
+# IC_05= IC_0[IC_0['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC0_0
+#GetICs_000 = GetICs_0[GetICs_0['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC0_0 
+#IC_0.loc[IC_0['ALSI New'] == indexCode[0]]
+#GetICs_0 [indexCode[0]+' Weights'] = GetICs_0.loc[:,['ALSI New']] == indexCode[0]['Gross Market Capitalisation']/GMC_IC0_0 
+
+# print(indeCode[0])
+# IC_11.columns
+
+
+# In[12]:
+
+
+pd.set_option('mode.chained_assignment', None)    # look into another method of 
+GetICs_0[indexCode[0]+' Weights']  =GetICs_0[GetICs_0['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC0_0 
+GetICs_0[indexCode[1]+' Weights']  =GetICs_0[GetICs_0['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC0_1 
+GetICs_0[indexCode[2]+' Weights']  =GetICs_0[GetICs_0['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC0_2 
+GetICs_0[indexCode[3]+' Weights']  =GetICs_0[GetICs_0['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC0_3 
+GetICs_0[indexCode[4]+' Weights']  =GetICs_0[GetICs_0['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC0_4 
+GetICs_0[indexCode[5]+' Weights']  =GetICs_0[GetICs_0['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC0_5 
+GetICs_0[indexCode[6]+' Weights']  =GetICs_0[GetICs_0['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC0_6 
+GetICs_0[indexCode[7]+' Weights']  =GetICs_0[GetICs_0['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC0_7 
+GetICs_0[indexCode[8]+' Weights']  =GetICs_0[GetICs_0['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC0_8 
+GetICs_0[indexCode[9]+' Weights']  =GetICs_0[GetICs_0['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC0_9 
+GetICs_0[indexCode[10]+' Weights'] =GetICs_0[GetICs_0['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC0_10
+GetICs_0[indexCode[11]+' Weights'] =GetICs_0[GetICs_0['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC0_11
+
+GetICs_1[indexCode[0]+' Weights'] = GetICs_1[GetICs_1['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC1_0 
+GetICs_1[indexCode[1]+' Weights'] = GetICs_1[GetICs_1['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC1_1 
+GetICs_1[indexCode[2]+' Weights'] = GetICs_1[GetICs_1['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC1_2 
+GetICs_1[indexCode[3]+' Weights'] = GetICs_1[GetICs_1['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC1_3 
+GetICs_1[indexCode[4]+' Weights'] = GetICs_1[GetICs_1['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC1_4 
+GetICs_1[indexCode[5]+' Weights'] = GetICs_1[GetICs_1['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC1_5 
+GetICs_1[indexCode[6]+' Weights'] = GetICs_1[GetICs_1['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC1_6 
+GetICs_1[indexCode[7]+' Weights'] = GetICs_1[GetICs_1['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC1_7 
+GetICs_1[indexCode[8]+' Weights'] = GetICs_1[GetICs_1['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC1_8 
+GetICs_1[indexCode[9]+' Weights'] = GetICs_1[GetICs_1['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC1_9 
+GetICs_1[indexCode[10]+' Weights'] =GetICs_1[GetICs_1['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC1_10
+GetICs_1[indexCode[11]+' Weights'] =GetICs_1[GetICs_1['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC1_11
+
+GetICs_2[indexCode[0]+' Weights']  = GetICs_2[GetICs_2['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC2_0 
+GetICs_2[indexCode[1]+' Weights']  = GetICs_2[GetICs_2['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC2_1 
+GetICs_2[indexCode[2]+' Weights']  = GetICs_2[GetICs_2['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC2_2 
+GetICs_2[indexCode[3]+' Weights']  = GetICs_2[GetICs_2['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC2_3 
+GetICs_2[indexCode[4]+' Weights']  = GetICs_2[GetICs_2['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC2_4 
+GetICs_2[indexCode[5]+' Weights']  = GetICs_2[GetICs_2['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC2_5 
+GetICs_2[indexCode[6]+' Weights']  = GetICs_2[GetICs_2['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC2_6 
+GetICs_2[indexCode[7]+' Weights']  = GetICs_2[GetICs_2['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC2_7 
+GetICs_2[indexCode[8]+' Weights']  = GetICs_2[GetICs_2['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC2_8 
+GetICs_2[indexCode[9]+' Weights']  = GetICs_2[GetICs_2['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC2_9 
+GetICs_2[indexCode[10]+' Weights']  =GetICs_2[GetICs_2['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC2_10
+GetICs_2[indexCode[11]+' Weights']  =GetICs_2[GetICs_2['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC2_11
+
+GetICs_3[indexCode[0]+' Weights']  = GetICs_3[GetICs_3['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC3_0 
+GetICs_3[indexCode[1]+' Weights']  = GetICs_3[GetICs_3['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC3_1 
+GetICs_3[indexCode[2]+' Weights']  = GetICs_3[GetICs_3['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC3_2 
+GetICs_3[indexCode[3]+' Weights']  = GetICs_3[GetICs_3['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC3_3 
+GetICs_3[indexCode[4]+' Weights']  = GetICs_3[GetICs_3['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC3_4 
+GetICs_3[indexCode[5]+' Weights']  = GetICs_3[GetICs_3['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC3_5 
+GetICs_3[indexCode[6]+' Weights']  = GetICs_3[GetICs_3['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC3_6 
+GetICs_3[indexCode[7]+' Weights']  = GetICs_3[GetICs_3['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC3_7 
+GetICs_3[indexCode[8]+' Weights']  = GetICs_3[GetICs_3['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC3_8 
+GetICs_3[indexCode[9]+' Weights']  = GetICs_3[GetICs_3['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC3_9 
+GetICs_3[indexCode[10]+' Weights']  =GetICs_3[GetICs_3['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC3_10
+GetICs_3[indexCode[11]+' Weights'] =GetICs_3[GetICs_3['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC3_11
+
+GetICs_4[indexCode[0]+' Weights'] = GetICs_4[GetICs_4['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC4_0 
+GetICs_4[indexCode[1]+' Weights'] = GetICs_4[GetICs_4['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC4_1 
+GetICs_4[indexCode[2]+' Weights'] = GetICs_4[GetICs_4['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC4_2 
+GetICs_4[indexCode[3]+' Weights'] = GetICs_4[GetICs_4['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC4_3 
+GetICs_4[indexCode[4]+' Weights'] = GetICs_4[GetICs_4['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC4_4 
+GetICs_4[indexCode[5]+' Weights'] = GetICs_4[GetICs_4['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC4_5 
+GetICs_4[indexCode[6]+' Weights'] = GetICs_4[GetICs_4['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC4_6 
+GetICs_4[indexCode[7]+' Weights'] = GetICs_4[GetICs_4['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC4_7 
+GetICs_4[indexCode[8]+' Weights'] = GetICs_4[GetICs_4['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC4_8 
+GetICs_4[indexCode[9]+' Weights'] = GetICs_4[GetICs_4['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC4_9 
+GetICs_4[indexCode[10]+' Weights'] =GetICs_4[GetICs_4['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC4_10
+GetICs_4[indexCode[11]+' Weights']=GetICs_4[GetICs_4['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC4_11
+
+GetICs_5[indexCode[0]+' Weights'] = GetICs_5[GetICs_5['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC5_0 
+GetICs_5[indexCode[1]+' Weights'] = GetICs_5[GetICs_5['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC5_1 
+GetICs_5[indexCode[2]+' Weights'] = GetICs_5[GetICs_5['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC5_2 
+GetICs_5[indexCode[3]+' Weights'] = GetICs_5[GetICs_5['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC5_3 
+GetICs_5[indexCode[4]+' Weights'] = GetICs_5[GetICs_5['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC5_4 
+GetICs_5[indexCode[5]+' Weights'] = GetICs_5[GetICs_5['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC5_5 
+GetICs_5[indexCode[6]+' Weights'] = GetICs_5[GetICs_5['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC5_6 
+GetICs_5[indexCode[7]+' Weights'] = GetICs_5[GetICs_5['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC5_7 
+GetICs_5[indexCode[8]+' Weights'] = GetICs_5[GetICs_5['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC5_8 
+GetICs_5[indexCode[9]+' Weights'] = GetICs_5[GetICs_5['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC5_9 
+GetICs_5[indexCode[10]+' Weights'] =GetICs_5[GetICs_5['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC5_10
+GetICs_5[indexCode[11]+' Weights']=GetICs_5[GetICs_5['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC5_11
+
+GetICs_6[indexCode[0]+' Weights'] = GetICs_6[GetICs_6['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC6_0 
+GetICs_6[indexCode[1]+' Weights'] = GetICs_6[GetICs_6['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC6_1 
+GetICs_6[indexCode[2]+' Weights'] = GetICs_6[GetICs_6['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC6_2 
+GetICs_6[indexCode[3]+' Weights'] = GetICs_6[GetICs_6['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC6_3 
+GetICs_6[indexCode[4]+' Weights'] = GetICs_6[GetICs_6['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC6_4 
+GetICs_6[indexCode[5]+' Weights'] = GetICs_6[GetICs_6['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC6_5 
+GetICs_6[indexCode[6]+' Weights'] = GetICs_6[GetICs_6['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC6_6 
+GetICs_6[indexCode[7]+' Weights'] = GetICs_6[GetICs_6['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC6_7 
+GetICs_6[indexCode[8]+' Weights'] = GetICs_6[GetICs_6['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC6_8 
+GetICs_6[indexCode[9]+' Weights'] = GetICs_6[GetICs_6['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC6_9 
+GetICs_6[indexCode[10]+' Weights'] =GetICs_6[GetICs_6['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC6_10
+GetICs_6[indexCode[11]+' Weights']=GetICs_6[GetICs_6['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC6_11
+
+GetICs_7[indexCode[0]+' Weights']  = GetICs_7[GetICs_7['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC7_0 
+GetICs_7[indexCode[1]+' Weights']  = GetICs_7[GetICs_7['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC7_1 
+GetICs_7[indexCode[2]+' Weights']  = GetICs_7[GetICs_7['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC7_2 
+GetICs_7[indexCode[3]+' Weights']  = GetICs_7[GetICs_7['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC7_3 
+GetICs_7[indexCode[4]+' Weights']  = GetICs_7[GetICs_7['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC7_4 
+GetICs_7[indexCode[5]+' Weights']  = GetICs_7[GetICs_7['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC7_5 
+GetICs_7[indexCode[6]+' Weights']  = GetICs_7[GetICs_7['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC7_6 
+GetICs_7[indexCode[7]+' Weights']  = GetICs_7[GetICs_7['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC7_7 
+GetICs_7[indexCode[8]+' Weights']  = GetICs_7[GetICs_7['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC7_8 
+GetICs_7[indexCode[9]+' Weights']  = GetICs_7[GetICs_7['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC7_9 
+GetICs_7[indexCode[10]+' Weights']  =GetICs_7[GetICs_7['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC7_10
+GetICs_7[indexCode[11]+' Weights'] =GetICs_7[GetICs_7['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC7_11
+
+GetICs_8[indexCode[0]+' Weights'] = GetICs_8[GetICs_8['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC8_0 
+GetICs_8[indexCode[1]+' Weights'] = GetICs_8[GetICs_8['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC8_1 
+GetICs_8[indexCode[2]+' Weights'] = GetICs_8[GetICs_8['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC8_2 
+GetICs_8[indexCode[3]+' Weights'] = GetICs_8[GetICs_8['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC8_3 
+GetICs_8[indexCode[4]+' Weights'] = GetICs_8[GetICs_8['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC8_4 
+GetICs_8[indexCode[5]+' Weights'] = GetICs_8[GetICs_8['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC8_5 
+GetICs_8[indexCode[6]+' Weights'] = GetICs_8[GetICs_8['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC8_6 
+GetICs_8[indexCode[7]+' Weights'] = GetICs_8[GetICs_8['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC8_7 
+GetICs_8[indexCode[8]+' Weights'] = GetICs_8[GetICs_8['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC8_8 
+GetICs_8[indexCode[9]+' Weights'] = GetICs_8[GetICs_8['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC8_9 
+GetICs_8[indexCode[10]+' Weights'] =GetICs_8[GetICs_8['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC8_10
+GetICs_8[indexCode[11]+' Weights']=GetICs_8[GetICs_8['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC8_11
+
+GetICs_9[indexCode[0]+' Weights'] = GetICs_9[GetICs_9['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC9_0 
+GetICs_9[indexCode[1]+' Weights'] = GetICs_9[GetICs_9['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC9_1 
+GetICs_9[indexCode[2]+' Weights'] = GetICs_9[GetICs_9['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC9_2 
+GetICs_9[indexCode[3]+' Weights'] = GetICs_9[GetICs_9['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC9_3 
+GetICs_9[indexCode[4]+' Weights'] = GetICs_9[GetICs_9['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC9_4 
+GetICs_9[indexCode[5]+' Weights'] = GetICs_9[GetICs_9['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC9_5 
+GetICs_9[indexCode[6]+' Weights'] = GetICs_9[GetICs_9['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC9_6 
+GetICs_9[indexCode[7]+' Weights'] = GetICs_9[GetICs_9['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC9_7 
+GetICs_9[indexCode[8]+' Weights'] = GetICs_9[GetICs_9['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC9_8 
+GetICs_9[indexCode[9]+' Weights'] = GetICs_9[GetICs_9['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC9_9 
+GetICs_9[indexCode[10]+' Weights'] =GetICs_9[GetICs_9['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC9_10
+GetICs_9[indexCode[11]+' Weights'] =GetICs_9[GetICs_9['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC9_11
+
+GetICs_10[indexCode[0]+' Weights']= GetICs_10[GetICs_10['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC10_0 
+GetICs_10[indexCode[1]+' Weights']= GetICs_10[GetICs_10['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC10_1 
+GetICs_10[indexCode[2]+' Weights']= GetICs_10[GetICs_10['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC10_2 
+GetICs_10[indexCode[3]+' Weights']= GetICs_10[GetICs_10['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC10_3 
+GetICs_10[indexCode[4]+' Weights']= GetICs_10[GetICs_10['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC10_4 
+GetICs_10[indexCode[5]+' Weights']= GetICs_10[GetICs_10['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC10_5 
+GetICs_10[indexCode[6]+' Weights']= GetICs_10[GetICs_10['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC10_6 
+GetICs_10[indexCode[7]+' Weights']= GetICs_10[GetICs_10['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC10_7 
+GetICs_10[indexCode[8]+' Weights']= GetICs_10[GetICs_10['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC10_8 
+GetICs_10[indexCode[9]+' Weights']= GetICs_10[GetICs_10['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC10_9 
+GetICs_10[indexCode[10]+' Weights']=GetICs_10[GetICs_10['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC10_10
+GetICs_10[indexCode[11]+' Weights']=GetICs_10[GetICs_10['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC10_11
+
+GetICs_11[indexCode[0]+' Weights']= GetICs_11[GetICs_11['ALSI New'] == indexCode[0]]['Gross Market Capitalisation']/GMC_IC11_0 
+GetICs_11[indexCode[1]+' Weights']= GetICs_11[GetICs_11['ALSI New'] == indexCode[1]]['Gross Market Capitalisation']/GMC_IC11_1 
+GetICs_11[indexCode[2]+' Weights']= GetICs_11[GetICs_11['Index New'] ==indexCode[2]]['Gross Market Capitalisation']/GMC_IC11_2 
+GetICs_11[indexCode[3]+' Weights']= GetICs_11[GetICs_11['Index New'] ==indexCode[3]]['Gross Market Capitalisation']/GMC_IC11_3 
+GetICs_11[indexCode[4]+' Weights']= GetICs_11[GetICs_11['Index New'] ==indexCode[4]]['Gross Market Capitalisation']/GMC_IC11_4 
+GetICs_11[indexCode[5]+' Weights']= GetICs_11[GetICs_11['TOPI New'] == indexCode[5]]['Gross Market Capitalisation']/GMC_IC11_5 
+GetICs_11[indexCode[6]+' Weights']= GetICs_11[GetICs_11['RESI New'] == indexCode[6]]['Gross Market Capitalisation']/GMC_IC11_6 
+GetICs_11[indexCode[7]+' Weights']= GetICs_11[GetICs_11['FINI New'] == indexCode[7]]['Gross Market Capitalisation']/GMC_IC11_7 
+GetICs_11[indexCode[8]+' Weights']= GetICs_11[GetICs_11['INDI New'] == indexCode[8]]['Gross Market Capitalisation']/GMC_IC11_8 
+GetICs_11[indexCode[9]+' Weights']= GetICs_11[GetICs_11['PCAP New'] == indexCode[9]]['Gross Market Capitalisation']/GMC_IC11_9 
+GetICs_11[indexCode[10]+' Weights']=GetICs_11[GetICs_11['SAPY New'] == indexCode[10]]['Gross Market Capitalisation']/GMC_IC11_10
+GetICs_11[indexCode[11]+' Weights']=GetICs_11[GetICs_11['ALTI New'] == indexCode[11]]['Gross Market Capitalisation']/GMC_IC11_11
+
+
+# In[48]:
+
+
+# GetICs_2[['Date', 'ALTI Weights']]
+
+
+# In[13]:
+
+
+#Function 2
+
+# 2.1 Rename merge key to ICB Sub-Sector 
+tbl_Industry_Classification_Benchmark_new = tbl_Industry_Classification_Benchmark.rename(columns = {'Sub-Sector Code': 'ICB Sub-Sector'}, inplace = False)
+print(tbl_Industry_Classification_Benchmark_new)
+tbl_Industry_Classification_Benchmark_new.to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\ICB_new.xlsx',index=False, header=True)
+
+
+# In[14]:
+
+
+# 2.2 Merge GetICs and ICB data  * Note this is not the Final Form of the GetIC function we
+ICsAndWeights_0  = pd.merge(GetICs_0 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_1  = pd.merge(GetICs_1 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_2  = pd.merge(GetICs_2 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_3  = pd.merge(GetICs_3 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_4  = pd.merge(GetICs_4 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_5  = pd.merge(GetICs_5 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_6  = pd.merge(GetICs_6 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_7  = pd.merge(GetICs_7 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_8  = pd.merge(GetICs_8 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_9  = pd.merge(GetICs_9 , tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_10 = pd.merge(GetICs_10, tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+ICsAndWeights_11 = pd.merge(GetICs_11, tbl_Industry_Classification_Benchmark_new, on='ICB Sub-Sector')
+
+print(ICsAndWeights_0 .columns)
+
+
+# In[52]:
+
+
+GetICsAndWeights_0  = ICsAndWeights_0 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_1  = ICsAndWeights_1 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_2  = ICsAndWeights_2 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_3  = ICsAndWeights_3 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_4  = ICsAndWeights_4 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_5  = ICsAndWeights_5 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_6  = ICsAndWeights_6 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_7  = ICsAndWeights_7 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_8  = ICsAndWeights_8 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_9  = ICsAndWeights_9 .iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_10 = ICsAndWeights_10.iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+GetICsAndWeights_11 = ICsAndWeights_11.iloc[:,[0,28,2,16,17,18,19,20,21,22,23,24,25,26,27]]
+
+print(GetICsAndWeights_0 .columns)
+print(GetICsAndWeights_0[['Date','TOPI Weights']])
+
+
+# In[53]:
+
+
+# GetICsAndWeights_0 .to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\getICS_0.xlsx',index=False, header=True)
+
+
+# In[17]:
+
+
+# object containing market index
+mktIndexCode = ['J200','J203','J250','J257','J258']
+print(mktIndexCode[2])
+
+
+# In[18]:
+
+
+# GetICsAndWeights_test  = GetICsAndWeights_0.rename(columns = {'Instrument': 'Companies'}, inplace = False)
+# # GetICsAndWeights_test = GetICsAndWeights_test.drop('Instrument',1)  
+# GetICsAndWeights_test  = GetICsAndWeights_0.rename(columns = {'Alpha': 'Instrument'}, inplace = False)
+# print(GetICsAndWeights_test.columns) 
+
+
+# In[19]:
+
+
+# 1.1 Find the distinct quartly dates as rDate
+rDate1 = sorted(list(set(tbl_BA_Beta_Output['Date'])))    # its easier working with a list
+type(rDate)            
+print(rDate)
+print(rDate1)
+#rDate and rDate is sorted that each index position of both variables occur in the same month and thus quarter.
+
+
+# In[20]:
+
+
+
+print(tbl_BA_Beta_Output)
+
+
+# In[21]:
+
+
+rDate_Betas_0  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[0]]         #2017-09-18 00:00:00.000
+rDate_Betas_1  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[1]]         #2017-12-18 00:00:00.000
+rDate_Betas_2  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[2]]
+rDate_Betas_3  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[3]]
+rDate_Betas_4  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[4]]
+rDate_Betas_5  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[5]]
+rDate_Betas_6  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[6]]
+rDate_Betas_7  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[7]]
+rDate_Betas_8  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[8]]
+rDate_Betas_9  =  tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[9]]
+rDate_Betas_10 = tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[10]]      #2020-03-23 00:00:00.000
+rDate_Betas_11 = tbl_BA_Beta_Output.loc[tbl_BA_Beta_Output['Date'] == rDate1[11]]
+
+
+# In[22]:
+
+
+Betas_0 = pd.merge(ICsAndWeights_0 , rDate_Betas_0  , on='Instrument')
+Betas_1 = pd.merge(ICsAndWeights_1 , rDate_Betas_1  , on='Instrument')
+Betas_2 = pd.merge(ICsAndWeights_2 , rDate_Betas_2  , on='Instrument')
+Betas_3 = pd.merge(ICsAndWeights_3 , rDate_Betas_3  , on='Instrument')
+Betas_4 = pd.merge(ICsAndWeights_4 , rDate_Betas_4  , on='Instrument')
+Betas_5 = pd.merge(ICsAndWeights_5 , rDate_Betas_5  , on='Instrument')
+Betas_6 = pd.merge(ICsAndWeights_6 , rDate_Betas_6  , on='Instrument')
+Betas_7 = pd.merge(ICsAndWeights_7 , rDate_Betas_7  , on='Instrument')
+Betas_8 = pd.merge(ICsAndWeights_8 , rDate_Betas_8  , on='Instrument')
+Betas_9 = pd.merge(ICsAndWeights_9 , rDate_Betas_9  , on='Instrument')
+Betas_10  = pd.merge(ICsAndWeights_10, rDate_Betas_10  , on='Instrument')
+Betas_11  = pd.merge(ICsAndWeights_11, rDate_Betas_11  , on='Instrument')
+
+
+# In[23]:
+
+
+Betas_0[(Betas_0['ALSI New']  == indexCode[0] )& (Betas_0['Index']== mktIndexCode[0])] 
+
+
+# In[24]:
+
+
+# notation eg _1_2 = _j_i    ( the order needs to be swapped)
+#For now lets just consider J200, we need to do the four other market indices
+
+Betas_0_0 =Betas_0[(Betas_0['ALSI New']  == indexCode[0] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_1 =Betas_0[(Betas_0['ALSI New']  == indexCode[1] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_2 =Betas_0[(Betas_0['Index New'] == indexCode[2] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_3 =Betas_0[(Betas_0['Index New'] == indexCode[3] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_4 =Betas_0[(Betas_0['Index New'] == indexCode[4] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_5 =Betas_0[(Betas_0['TOPI New']  == indexCode[5] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_6 =Betas_0[(Betas_0['RESI New']  == indexCode[6] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_7 =Betas_0[(Betas_0['FINI New']  == indexCode[7] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_8 =Betas_0[(Betas_0['INDI New']  == indexCode[8] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_9 =Betas_0[(Betas_0['PCAP New']  == indexCode[9] )& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_10=Betas_0[(Betas_0['SAPY New']  == indexCode[10])& (Betas_0['Index']== mktIndexCode[0])] 
+Betas_0_11=Betas_0[(Betas_0['ALTI New']  == indexCode[11])& (Betas_0['Index']== mktIndexCode[0])]
+
+Betas_1_0 =Betas_1[(Betas_1['ALSI New']  == indexCode[0]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_1 =Betas_1[(Betas_1['ALSI New']  == indexCode[1]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_2 =Betas_1[(Betas_1['Index New'] == indexCode[2]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_3 =Betas_1[(Betas_1['Index New'] == indexCode[3]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_4 =Betas_1[(Betas_1['Index New'] == indexCode[4]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_5 =Betas_1[(Betas_1['TOPI New']  == indexCode[5]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_6 =Betas_1[(Betas_1['RESI New']  == indexCode[6]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_7 =Betas_1[(Betas_1['FINI New']  == indexCode[7]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_8 =Betas_1[(Betas_1['INDI New']  == indexCode[8]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_9 =Betas_1[(Betas_1['PCAP New']  == indexCode[9]) & (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_10=Betas_1[(Betas_1['SAPY New']  == indexCode[10])& (Betas_1['Index']== mktIndexCode[0])] 
+Betas_1_11=Betas_1[(Betas_1['ALTI New']  == indexCode[11])& (Betas_1['Index']== mktIndexCode[0])]
+
+Betas_2_0 =Betas_2[(Betas_2['ALSI New']  == indexCode[0]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_1 =Betas_2[(Betas_2['ALSI New']  == indexCode[1]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_2 =Betas_2[(Betas_2['Index New'] == indexCode[2]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_3 =Betas_2[(Betas_2['Index New'] == indexCode[3]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_4 =Betas_2[(Betas_2['Index New'] == indexCode[4]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_5 =Betas_2[(Betas_2['TOPI New']  == indexCode[5]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_6 =Betas_2[(Betas_2['RESI New']  == indexCode[6]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_7 =Betas_2[(Betas_2['FINI New']  == indexCode[7]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_8 =Betas_2[(Betas_2['INDI New']  == indexCode[8]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_9 =Betas_2[(Betas_2['PCAP New']  == indexCode[9]) & (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_10=Betas_2[(Betas_2['SAPY New']  == indexCode[10])& (Betas_2['Index']== mktIndexCode[0])] 
+Betas_2_11=Betas_2[(Betas_2['ALTI New']  == indexCode[11])& (Betas_2['Index']== mktIndexCode[0])]
+
+Betas_3_0 =Betas_3[(Betas_3['ALSI New']  == indexCode[0]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_1 =Betas_3[(Betas_3['ALSI New']  == indexCode[1]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_2 =Betas_3[(Betas_3['Index New'] == indexCode[2]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_3 =Betas_3[(Betas_3['Index New'] == indexCode[3]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_4 =Betas_3[(Betas_3['Index New'] == indexCode[4]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_5 =Betas_3[(Betas_3['TOPI New']  == indexCode[5]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_6 =Betas_3[(Betas_3['RESI New']  == indexCode[6]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_7 =Betas_3[(Betas_3['FINI New']  == indexCode[7]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_8 =Betas_3[(Betas_3['INDI New']  == indexCode[8]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_9 =Betas_3[(Betas_3['PCAP New']  == indexCode[9]) & (Betas_3['Index']== mktIndexCode[0])]     
+Betas_3_10=Betas_3[(Betas_3['SAPY New']  == indexCode[10]) & (Betas_3['Index']== mktIndexCode[0])] 
+Betas_3_11=Betas_3[(Betas_3['ALTI New']  == indexCode[11]) & (Betas_3['Index']== mktIndexCode[0])]
+
+Betas_4_0 =Betas_4[(Betas_4['ALSI New']  == indexCode[0]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_1 =Betas_4[(Betas_4['ALSI New']  == indexCode[1]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_2 =Betas_4[(Betas_4['Index New'] == indexCode[2]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_3 =Betas_4[(Betas_4['Index New'] == indexCode[3]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_4 =Betas_4[(Betas_4['Index New'] == indexCode[4]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_5 =Betas_4[(Betas_4['TOPI New']  == indexCode[5]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_6 =Betas_4[(Betas_4['RESI New']  == indexCode[6]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_7 =Betas_4[(Betas_4['FINI New']  == indexCode[7]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_8 =Betas_4[(Betas_4['INDI New']  == indexCode[8]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_9 =Betas_4[(Betas_4['PCAP New']  == indexCode[9]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_10=Betas_4[(Betas_4['SAPY New']  == indexCode[10]) & (Betas_4['Index']== mktIndexCode[0])] 
+Betas_4_11=Betas_4[(Betas_4['ALTI New']  == indexCode[11]) & (Betas_4['Index']== mktIndexCode[0])]
+
+Betas_5_0 =Betas_5[(Betas_5['ALSI New']  == indexCode[0]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_1 =Betas_5[(Betas_5['ALSI New']  == indexCode[1]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_2 =Betas_5[(Betas_5['Index New'] == indexCode[2]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_3 =Betas_5[(Betas_5['Index New'] == indexCode[3]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_4 =Betas_5[(Betas_5['Index New'] == indexCode[4]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_5 =Betas_5[(Betas_5['TOPI New']  == indexCode[5]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_6 =Betas_5[(Betas_5['RESI New']  == indexCode[6]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_7 =Betas_5[(Betas_5['FINI New']  == indexCode[7]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_8 =Betas_5[(Betas_5['INDI New']  == indexCode[8]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_9 =Betas_5[(Betas_5['PCAP New']  == indexCode[9]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_10=Betas_5[(Betas_5['SAPY New']  == indexCode[10]) & (Betas_5['Index']== mktIndexCode[0])] 
+Betas_5_11=Betas_5[(Betas_5['ALTI New']  == indexCode[11]) & (Betas_5['Index']== mktIndexCode[0])]
+
+Betas_6_0 =Betas_6[(Betas_6['ALSI New']  == indexCode[0]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_1 =Betas_6[(Betas_6['ALSI New']  == indexCode[1]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_2 =Betas_6[(Betas_6['Index New'] == indexCode[2]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_3 =Betas_6[(Betas_6['Index New'] == indexCode[3]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_4 =Betas_6[(Betas_6['Index New'] == indexCode[4]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_5 =Betas_6[(Betas_6['TOPI New']  == indexCode[5]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_6 =Betas_6[(Betas_6['RESI New']  == indexCode[6]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_7 =Betas_6[(Betas_6['FINI New']  == indexCode[7]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_8 =Betas_6[(Betas_6['INDI New']  == indexCode[8]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_9 =Betas_6[(Betas_6['PCAP New']  == indexCode[9]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_10=Betas_6[(Betas_6['SAPY New']  == indexCode[10]) & (Betas_6['Index']== mktIndexCode[0])] 
+Betas_6_11=Betas_6[(Betas_6['ALTI New']  == indexCode[11]) & (Betas_6['Index']== mktIndexCode[0])]
+
+Betas_7_0 =Betas_7[(Betas_7['ALSI New']  == indexCode[0]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_1 =Betas_7[(Betas_7['ALSI New']  == indexCode[1]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_2 =Betas_7[(Betas_7['Index New'] == indexCode[2]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_3 =Betas_7[(Betas_7['Index New'] == indexCode[3]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_4 =Betas_7[(Betas_7['Index New'] == indexCode[4]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_5 =Betas_7[(Betas_7['TOPI New']  == indexCode[5]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_6 =Betas_7[(Betas_7['RESI New']  == indexCode[6]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_7 =Betas_7[(Betas_7['FINI New']  == indexCode[7]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_8 =Betas_7[(Betas_7['INDI New']  == indexCode[8]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_9 =Betas_7[(Betas_7['PCAP New']  == indexCode[9]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_10=Betas_7[(Betas_7['SAPY New']  == indexCode[10]) & (Betas_7['Index']== mktIndexCode[0])] 
+Betas_7_11=Betas_7[(Betas_7['ALTI New']  == indexCode[11]) & (Betas_7['Index']== mktIndexCode[0])]
+
+Betas_8_0 =Betas_8[(Betas_8['ALSI New']  == indexCode[0]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_1 =Betas_8[(Betas_8['ALSI New']  == indexCode[1]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_2 =Betas_8[(Betas_8['Index New'] == indexCode[2]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_3 =Betas_8[(Betas_8['Index New'] == indexCode[3]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_4 =Betas_8[(Betas_8['Index New'] == indexCode[4]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_5 =Betas_8[(Betas_8['TOPI New']  == indexCode[5]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_6 =Betas_8[(Betas_8['RESI New']  == indexCode[6]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_7 =Betas_8[(Betas_8['FINI New']  == indexCode[7]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_8 =Betas_8[(Betas_8['INDI New']  == indexCode[8]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_9 =Betas_8[(Betas_8['PCAP New']  == indexCode[9]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_10=Betas_8[(Betas_8['SAPY New']  == indexCode[10]) & (Betas_8['Index']== mktIndexCode[0])] 
+Betas_8_11=Betas_8[(Betas_8['ALTI New']  == indexCode[11]) & (Betas_8['Index']== mktIndexCode[0])]
+
+Betas_9_0 =Betas_9[(Betas_9['ALSI New']  == indexCode[0]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_1 =Betas_9[(Betas_9['ALSI New']  == indexCode[1]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_2 =Betas_9[(Betas_9['Index New'] == indexCode[2]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_3 =Betas_9[(Betas_9['Index New'] == indexCode[3]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_4 =Betas_9[(Betas_9['Index New'] == indexCode[4]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_5 =Betas_9[(Betas_9['TOPI New']  == indexCode[5]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_6 =Betas_9[(Betas_9['RESI New']  == indexCode[6]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_7 =Betas_9[(Betas_9['FINI New']  == indexCode[7]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_8 =Betas_9[(Betas_9['INDI New']  == indexCode[8]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_9 =Betas_9[(Betas_9['PCAP New']  == indexCode[9]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_10=Betas_9[(Betas_9['SAPY New']  == indexCode[10]) & (Betas_9['Index']== mktIndexCode[0])] 
+Betas_9_11=Betas_9[(Betas_9['ALTI New']  == indexCode[11]) & (Betas_9['Index']== mktIndexCode[0])]
+
+Betas_10_0 =Betas_10[(Betas_10['ALSI New']  == indexCode[0]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_1 =Betas_10[(Betas_10['ALSI New']  == indexCode[1]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_2 =Betas_10[(Betas_10['Index New'] == indexCode[2]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_3 =Betas_10[(Betas_10['Index New'] == indexCode[3]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_4 =Betas_10[(Betas_10['Index New'] == indexCode[4]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_5 =Betas_10[(Betas_10['TOPI New']  == indexCode[5]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_6 =Betas_10[(Betas_10['RESI New']  == indexCode[6]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_7 =Betas_10[(Betas_10['FINI New']  == indexCode[7]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_8 =Betas_10[(Betas_10['INDI New']  == indexCode[8]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_9 =Betas_10[(Betas_10['PCAP New']  == indexCode[9]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_10=Betas_10[(Betas_10['SAPY New']  == indexCode[10]) & (Betas_10['Index']== mktIndexCode[0])] 
+Betas_10_11=Betas_10[(Betas_10['ALTI New']  == indexCode[11]) & (Betas_10['Index']== mktIndexCode[0])]
+
+Betas_11_0 =Betas_11[(Betas_11['ALSI New']  == indexCode[0]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_1 =Betas_11[(Betas_11['ALSI New']  == indexCode[1]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_2 =Betas_11[(Betas_11['Index New'] == indexCode[2]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_3 =Betas_11[(Betas_11['Index New'] == indexCode[3]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_4 =Betas_11[(Betas_11['Index New'] == indexCode[4]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_5 =Betas_11[(Betas_11['TOPI New']  == indexCode[5]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_6 =Betas_11[(Betas_11['RESI New']  == indexCode[6]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_7 =Betas_11[(Betas_11['FINI New']  == indexCode[7]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_8 =Betas_11[(Betas_11['INDI New']  == indexCode[8]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_9 =Betas_11[(Betas_11['PCAP New']  == indexCode[9]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_10=Betas_11[(Betas_11['SAPY New']  == indexCode[10]) & (Betas_11['Index']== mktIndexCode[0])] 
+Betas_11_11=Betas_11[(Betas_11['ALTI New']  == indexCode[11]) & (Betas_11['Index']== mktIndexCode[0])]
+
+
+# In[39]:
+
+
+#rDate_BETAs_0 = rDate_BETAs_0.drop('Date',1) 
+#print(rDate_Betas_0)
+print(Betas_0_0[['Instrument','Beta','ALSI Weights','SAPY Weights','Industry']])
+
+
+# In[ ]:
+
+
+
+
+
+# In[26]:
+
+
+Betas_0_0 =Betas_0[(Betas_0['ALSI New']  == indexCode[0] )& (Betas_0['Index']== mktIndexCode[0])] 
+print(Betas_11_11[(Betas_11_11['ALTI New']== indexCode[11]) & (Betas_11_11['Index']== mktIndexCode[2])][['Beta']])
+print(Betas_11[(Betas_11['ALTI New']  == indexCode[11]) & (Betas_11['Index']== mktIndexCode[2])][['Beta']])
+
+# Betas_0_0 =Betas_0[Betas_0['ALSI New']  == indexCode[0] & Betas_0['ALSI New'] == indexCode[1]] 
+
+
+# In[27]:
+
+
+# Betas_6.to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\getICS_0.xlsx',index=False, header=True)
+# GetICsAndWeights_j200_4.to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\getICS_4.xlsx',index=False, header=True)
+# GetICsAndWeights_j200_10.to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\getICS_10.xlsx',index=False, header=True)
+
+
+# In[28]:
+
+
+#Get MarketBetas
+#Correspondes to the ALSI for the relevent quarter dates 
+# notation eg _1_2 = _j_i    ( the order needs to be swapped)
+GetBetasMkt_0_0 = Betas_0_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_1 = Betas_0_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_2 = Betas_0_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_3 = Betas_0_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_4 = Betas_0_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_5 = Betas_0_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_6 = Betas_0_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_7 = Betas_0_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_8 = Betas_0_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_9 = Betas_0_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_0_11 =Betas_0_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_0_11 =Betas_0_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Get MarketBetas
+#Correspondes to the FLED for the relevent quarter  dates 
+GetBetasMkt_1_0  =Betas_1_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_1  =Betas_1_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_2  =Betas_1_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_3  =Betas_1_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_4  =Betas_1_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_5  =Betas_1_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_6  =Betas_1_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_7  =Betas_1_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_8  =Betas_1_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_9  =Betas_1_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_1_11 =Betas_1_11[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_1_11 =Betas_1_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the LRGC for the relevent quarter  dates
+GetBetasMkt_2_0  =Betas_2_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_1  =Betas_2_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_2  =Betas_2_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_3  =Betas_2_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_4  =Betas_2_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_5  =Betas_2_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_6  =Betas_2_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_7  =Betas_2_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_8  =Betas_2_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_9  =Betas_2_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_2_10 =Betas_2_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_2_11 =Betas_2_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the MIDC for the relevent quarter  dates
+GetBetasMkt_3_0  =Betas_3_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_1  =Betas_3_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_2  =Betas_3_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_3  =Betas_3_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_4  =Betas_3_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_5  =Betas_3_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_6  =Betas_3_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_7  =Betas_3_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_8  =Betas_3_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_9  =Betas_3_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_3_10 =Betas_3_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_3_11 =Betas_3_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the SMLC for the relevent quarter  dates
+GetBetasMkt_4_0  =Betas_4_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_1  =Betas_4_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_2  =Betas_4_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_3  =Betas_4_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_4  =Betas_4_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_5  =Betas_4_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_6  =Betas_4_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_7  =Betas_4_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_8  =Betas_4_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_9  =Betas_4_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_4_10 =Betas_4_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_4_11 =Betas_4_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the TOPI for the relevent quarter  dates
+GetBetasMkt_5_0  =Betas_5_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_1  =Betas_5_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_2  =Betas_5_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_3  =Betas_5_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_4  =Betas_5_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_5  =Betas_5_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_6  =Betas_5_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_7  =Betas_5_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_8  =Betas_5_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_9  =Betas_5_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_5_10 =Betas_5_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_5_11 =Betas_5_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the RESI for the relevent quarter  dates
+GetBetasMkt_6_0  =Betas_6_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_1  =Betas_6_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_2  =Betas_6_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_3  =Betas_6_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_4  =Betas_6_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_5  =Betas_6_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_6  =Betas_6_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_7  =Betas_6_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_8  =Betas_6_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_9  =Betas_6_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_6_10 =Betas_6_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_6_11 =Betas_6_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the FINI for the relevent quarter  dates
+GetBetasMkt_7_0  =Betas_7_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_1  =Betas_7_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_2  =Betas_7_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_3  =Betas_7_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_4  =Betas_7_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_5  =Betas_7_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_6  =Betas_7_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_7  =Betas_7_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_8  =Betas_7_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_9  =Betas_7_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_7_10 =Betas_7_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_7_11 =Betas_7_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the INDI for the relevent quarter  dates
+GetBetasMkt_8_0  =Betas_8_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_1  =Betas_8_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_2  =Betas_8_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_3  =Betas_8_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_4  =Betas_8_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_5  =Betas_8_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_6  =Betas_8_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_7  =Betas_8_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_8  =Betas_8_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_9  =Betas_8_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_8_10 =Betas_8_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_8_11 =Betas_8_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the PCAP for the relevent quarter  dates
+GetBetasMkt_9_0  =Betas_9_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_1  =Betas_9_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_2  =Betas_9_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_3  =Betas_9_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_4  =Betas_9_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_5  =Betas_9_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_6  =Betas_9_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_7  =Betas_9_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_8  =Betas_9_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_9  =Betas_9_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_9_10 =Betas_9_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_9_11 =Betas_9_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the SAPY for the relevent quarter  dates
+GetBetasMkt_10_0  =Betas_10_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_1  =Betas_10_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_2  =Betas_10_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_3  =Betas_10_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_4  =Betas_10_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_5  =Betas_10_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_6  =Betas_10_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_7  =Betas_10_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_8  =Betas_10_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_9  =Betas_10_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_10_10 =Betas_10_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_10_11 =Betas_10_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+#Correspondes to the ALTI for the relevent quarter  dates
+GetBetasMkt_11_0  =Betas_11_0 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_1  =Betas_11_1 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_2  =Betas_11_2 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_3  =Betas_11_3 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_4  =Betas_11_4 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_5  =Betas_11_5 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_6  =Betas_11_6 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_7  =Betas_11_7 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_8  =Betas_11_8 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_9  =Betas_11_9 [['Date_x','Beta','Index','Instrument','Companies','Industry']]
+GetBetasMkt_11_10 =Betas_11_10[['Date_x','Beta','Index','Instrument','Companies','Industry']] 
+GetBetasMkt_11_11 =Betas_11_11[['Date_x','Beta','Index','Instrument','Companies','Industry']]
+
+
+# In[29]:
+
+
+print(GetBetasMkt_11_0)    # from this we can get industry
+
+
+# In[30]:
+
+
+#Get MarketBetas
+#Correspondes to the AlSI for the relevent quarter  dates 
+# notation eg _1_2 = _j_i    ( the order needs to be swapped)
+specVols_0_0  =Betas_0_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_1  =Betas_0_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_2  =Betas_0_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_3  =Betas_0_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_4  =Betas_0_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_5  =Betas_0_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_6  =Betas_0_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_7  =Betas_0_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_8  =Betas_0_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_9  =Betas_0_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_0_11 =Betas_0_11[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_0_11 =Betas_0_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Get MarketBetas
+#Correspondes to the FLED for the relevent quarter  dates 
+specVols_1_0  =Betas_1_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_1  =Betas_1_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_2  =Betas_1_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_3  =Betas_1_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_4  =Betas_1_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_5  =Betas_1_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_6  =Betas_1_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_7  =Betas_1_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_8  =Betas_1_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_9  =Betas_1_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_1_11 =Betas_1_11[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_1_11 =Betas_1_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the LRGC for the relevent quarter  dates
+specVols_2_0  =Betas_2_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_1  =Betas_2_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_2  =Betas_2_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_3  =Betas_2_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_4  =Betas_2_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_5  =Betas_2_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_6  =Betas_2_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_7  =Betas_2_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_8  =Betas_2_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_9  =Betas_2_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_2_10 =Betas_2_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_2_11 =Betas_2_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the MIDC for the relevent quarter  dates
+specVols_3_0  =Betas_3_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_1  =Betas_3_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_2  =Betas_3_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_3  =Betas_3_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_4  =Betas_3_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_5  =Betas_3_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_6  =Betas_3_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_7  =Betas_3_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_8  =Betas_3_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_9  =Betas_3_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_3_10 =Betas_3_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_3_11 =Betas_3_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the SMLC for the relevent quarter  dates
+specVols_4_0  =Betas_4_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_1  =Betas_4_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_2  =Betas_4_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_3  =Betas_4_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_4  =Betas_4_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_5  =Betas_4_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_6  =Betas_4_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_7  =Betas_4_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_8  =Betas_4_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_9  =Betas_4_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_4_10 =Betas_4_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_4_11 =Betas_4_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the TOPI for the relevent quarter  dates
+specVols_5_0  =Betas_5_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_1  =Betas_5_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_2  =Betas_5_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_3  =Betas_5_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_4  =Betas_5_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_5  =Betas_5_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_6  =Betas_5_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_7  =Betas_5_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_8  =Betas_5_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_9  =Betas_5_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_5_10 =Betas_5_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_5_11 =Betas_5_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the RESI for the relevent quarter  dates
+specVols_6_0  =Betas_6_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_1  =Betas_6_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_2  =Betas_6_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_3  =Betas_6_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_4  =Betas_6_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_5  =Betas_6_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_6  =Betas_6_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_7  =Betas_6_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_8  =Betas_6_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_9  =Betas_6_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_10 =Betas_6_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_6_11 =Betas_6_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the FINI for the relevent quarter  dates
+specVols_7_0  =Betas_7_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_1  =Betas_7_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_2  =Betas_7_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_3  =Betas_7_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_4  =Betas_7_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_5  =Betas_7_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_6  =Betas_7_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_7  =Betas_7_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_8  =Betas_7_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_9  =Betas_7_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_10 =Betas_7_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_7_11 =Betas_7_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the INDI for the relevent quarter  dates
+specVols_8_0  =Betas_8_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_1  =Betas_8_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_2  =Betas_8_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_3  =Betas_8_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_4  =Betas_8_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_5  =Betas_8_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_6  =Betas_8_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_7  =Betas_8_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_8  =Betas_8_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_9  =Betas_8_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_10 =Betas_8_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_8_11 =Betas_8_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the PCAP for the relevent quarter  dates
+specVols_9_0  =Betas_9_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_1  =Betas_9_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_2  =Betas_9_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_3  =Betas_9_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_4  =Betas_9_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_5  =Betas_9_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_6  =Betas_9_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_7  =Betas_9_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_8  =Betas_9_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_9  =Betas_9_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_10 =Betas_9_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_9_11 =Betas_9_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the SAPY for the relevent quarter  dates
+specVols_10_0  =Betas_10_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_1  =Betas_10_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_2  =Betas_10_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_3  =Betas_10_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_4  =Betas_10_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_5  =Betas_10_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_6  =Betas_10_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_7  =Betas_10_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_8  =Betas_10_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_9  =Betas_10_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_10 =Betas_10_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_10_11 =Betas_10_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the ALTI for the relevent quarter  dates
+specVols_11_0  =Betas_11_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_1  =Betas_11_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_2  =Betas_11_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_3  =Betas_11_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_4  =Betas_11_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_5  =Betas_11_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_6  =Betas_11_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_7  =Betas_11_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_8  =Betas_11_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_9  =Betas_11_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_10 =Betas_11_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_11_11 =Betas_11_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the RESI for the relevent quarter  dates
+specVols_6_0  =Betas_6_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_1  =Betas_6_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_2  =Betas_6_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_3  =Betas_6_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_4  =Betas_6_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_5  =Betas_6_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_6  =Betas_6_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_7  =Betas_6_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_8  =Betas_6_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_9  =Betas_6_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_6_10 =Betas_6_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_6_11 =Betas_6_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the FINI for the relevent quarter  dates
+specVols_7_0  =Betas_7_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_1  =Betas_7_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_2  =Betas_7_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_3  =Betas_7_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_4  =Betas_7_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_5  =Betas_7_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_6  =Betas_7_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_7  =Betas_7_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_8  =Betas_7_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_9  =Betas_7_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_7_10 =Betas_7_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_7_11 =Betas_7_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the INDI for the relevent quarter  dates
+specVols_8_0  =Betas_8_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_1  =Betas_8_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_2  =Betas_8_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_3  =Betas_8_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_4  =Betas_8_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_5  =Betas_8_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_6  =Betas_8_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_7  =Betas_8_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_8  =Betas_8_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_9  =Betas_8_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_8_10 =Betas_8_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_8_11 =Betas_8_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the PCAP for the relevent quarter  dates
+specVols_9_0  =Betas_9_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_1  =Betas_9_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_2  =Betas_9_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_3  =Betas_9_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_4  =Betas_9_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_5  =Betas_9_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_6  =Betas_9_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_7  =Betas_9_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_8  =Betas_9_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_9  =Betas_9_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_9_10 =Betas_9_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_9_11 =Betas_9_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the SAPY for the relevent quarter  dates
+specVols_10_0  =Betas_10_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_1  =Betas_10_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_2  =Betas_10_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_3  =Betas_10_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_4  =Betas_10_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_5  =Betas_10_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_6  =Betas_10_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_7  =Betas_10_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_8  =Betas_10_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_9  =Betas_10_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_10_10 =Betas_10_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_10_11 =Betas_10_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+#Correspondes to the ALTI for the relevent quarter  dates
+specVols_11_0  =Betas_11_0 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_1  =Betas_11_1 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_2  =Betas_11_2 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_3  =Betas_11_3 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_4  =Betas_11_4 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_5  =Betas_11_5 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_6  =Betas_11_6 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_7  =Betas_11_7 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_8  =Betas_11_8 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_9  =Betas_11_9 [['Date_x','Instrument','Unique Risk','Industry']]
+specVols_11_10 =Betas_11_10[['Date_x','Instrument','Unique Risk','Industry']] 
+specVols_11_11 =Betas_11_11[['Date_x','Instrument','Unique Risk','Industry']]
+
+
+# In[31]:
+
+
+specVols_11_0    #this is the last date for the first of ALSI
+
+
+# In[32]:
+
+
+print(GetBetasMkt_11_0[GetBetasMkt_11_0['Industry']== 'Financials'])
+
+
+# In[34]:
+
+
+Betas_0_0.to_excel(r'C:\Users\27605\Documents\0.Personal Career\INF5006S\Project\Python Dev\getICS_0.xlsx',index=False, header=True)
+
+
+# In[ ]:
+
+
+
+
