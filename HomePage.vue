@@ -1,6 +1,6 @@
 <template>
   <div class="container-fluid m-0 p-0">
-    <back-to-top text="Back to top" visibleoffset="500"></back-to-top>
+    <back-to-top text="Back to top" visibleoffset="500"></back-to-top> <!--Creating the Back to top button-->
       <div id = "home-page" class="full-height">
           <div class="container pt-3">
               <div class="row pb-5">
@@ -19,7 +19,7 @@
                     <div class="border p-3 p-md-5 bg-white rounded shadow">
                         <h2 class="text-dark">Page Index</h2>
                         <form>
-                            <div class="form-group text-dark text-left">
+                            <div class="form-group text-dark text-left"> <!--Creating Scroll to certain Div ID's buttons-->
                                 <button v-scroll-to="'#betaplots'">Beta Plots</button>
                                 <br>
                                 <button v-scroll-to="'#synweights'">Systhetic Statistics Decomposition</button>
@@ -33,33 +33,34 @@
                         </form>
                     </div>
                   </div>
-              </div>
-          </div>
-      </div>
+            </div>
+        </div>
+    </div>
 
 
+<!--The first plots for Share and Industry Beta Progression-->
 <div id="betaplots" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">Beta Progession for Selected Share</h3>
     <div id="dashboard_div7">
       <!--Divs that will hold each control and chart-->
-      <div id="filter_div8"></div>
-      <div id="filter_div7"></div>
-      <div id="linechart_div"></div>
+        <div id="filter_div8"></div>
+        <div id="filter_div7"></div>
+        <div id="linechart_div"></div>
     </div>
 
     <h3 class="text-dark p-4">Beta Progession for Selected Industry</h3>
     <div id="dashboard_div9">
       <!--Divs that will hold each control and chart-->
-      <div id="filter_div9"></div>
-      <div id="filter_div11"></div>
-      <div id="pflinechart_div"></div>
+        <div id="filter_div9"></div>
+        <div id="filter_div11"></div>
+        <div id="pflinechart_div"></div>
     </div>
 
 
 </div>
 
 
-
+<!--The second plots for Decomposition of the various portfolio's-->
 
 <div id="synweights" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">Synthetic Index Statistics Decomposition</h3>
@@ -69,33 +70,33 @@
     <div id="synthetic_sys"></div>
 </div>
 
+
+<!--The first table for Industry Risk Decomposition-->
+
 <div id="ba_table" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">BA Output Test</h3>
     <div id="ba_output">
           <div class="row">
-      <div class="col-lg p-4" >
-    <!--Div that will hold the dashboard-->
-    
-      <!--Divs that will hold each control and chart-->
-      <div id="date_filter"></div>
-      <br>
-      <div id="ba_index"></div>
-      <br>
-      <div id="ba_share"></div>
-
-  
-      </div>
-
-      <div class="col-lg">
-      <div id="ba_chart"></div>
-      </div>
+              <div class="col-lg p-4" >
+                <!--Divs that will hold each control-->
+                    <div id="date_filter"></div>
+                    <br>
+                    <div id="ba_index"></div>
+                    <br>
+                    <div id="ba_share"></div>
+              </div>
+                <!--Divs that will hold the table-->
+              <div class="col-lg">
+                    <div id="ba_chart"></div>
+              </div>
+        </div>
+        <!--Button to download data-->
+      <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
     </div>
-    <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
-</div>
 </div>
 
 
-
+<!--Second Table - All C's Weights - filterable on columns-->
 
 <div id="AllC" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4"> All C's Weights</h3>
@@ -116,16 +117,20 @@
             </td>
         </tr>
     </table>
+    </div>
 </div>
-</div>
 
-
-
+<!--Quants Tables -->
+<!--make table like structure to hold different elements-->
 <div id="quant_tables" class="container-fluid m-0 p-0 full-height bg-light">
     <h3 class="text-dark p-4">Quantitative Analyst</h3>
     <div class="row">
          <div class="col-lg">
             <img id= "image-img" src="../assets/image.png" class="img-fluig">
+        </div>
+
+         <div class="col-lg">
+             <h6 class="text-dark text-left text-small">Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum </h6>
         </div>
         
         <div class="col-lg">
@@ -134,6 +139,11 @@
             <div id="specific_table"></div>
             <h6 class="text-dark">Portfolio Specific Risk = 0.00063833</h6>
         </div>
+
+       
+
+                   
+
     </div>
 
     <div class="row">
@@ -161,6 +171,25 @@
     </div>
 </div>
 
+
+<!--Fourth Table - Correlation for TOPI - filterable on columns-->
+
+<div id="corr_topi" class="container-fluid m-0 p-0 full-height bg-light">
+    <h3 class="text-dark p-4"> Correlation Matrix for TOPI</h3>
+    <div id="corr_dashboard">
+    <table>
+        <tr style='vertical-align: top'>
+            <td style='width: 300px; font-size: 0.9em;'>
+                <div id="corr_share_filter"></div>
+                <div id="corr_column_filter"></div>
+            </td>
+            <td style='width: 600px'>
+                <div style="float: left;" id="corr_table"></div>
+            </td>
+        </tr>
+    </table>
+    </div>
+</div>
 
 <div id = "about" class="bg-light p-3 p-md-5">
           <div class="row">
