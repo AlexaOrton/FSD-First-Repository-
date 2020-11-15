@@ -1,0 +1,88 @@
+--Function 1 GetICsAndWeights
+USE [AIFMRM_ERS]
+GO
+-- rDate = '2020-06-22'
+DECLARE @rDate dateTime 
+SET @rDate ='2020-06-22 00:00:00.000'
+PRINT @rDate
+-- IndexCode = 'ALSI', 'FLED', 'LRGC', 'MIDC', 'SMLC', 'TOPI', 'RESI', 'FINI', 'INDI', 'PCAP', 'SAPY', 'ALTI'
+-- Index Contituents this month = 
+-- "ALSI New"
+-- "Index New"
+-- "TOPI New"
+-- "DTOP New"
+-- "RESI New"
+-- "FINI New"
+-- "INDI New"
+-- "PCAP New"
+-- "SAPY New"
+-- "ALTI New"
+
+-- Note- we may need a more elegant way of resolving this, manual fix below does not resolve to logical check required in project document
+
+-- Note how to run code: 1. highlight each select statement then execute, uncomment the insert into GetICsAndWeights statement the first time you execute
+
+SELECT [Date]
+      ,[Rank]
+      ,[Alpha]
+      ,[Instrument]
+      ,[ICB Sub-Sector]
+      ,[Status]
+      ,[Free Float Pass]
+      ,[Liquidity Pass]
+      ,[Gross Market Capitalisation]
+      ,[Cumulative Market Capitalisation]
+	  -- Function 1. ii.) Include Index Constituent fields
+	  ,[Index New]
+      ,[ALSI New]
+      ,[TOPI New]
+      ,[DTOP New]
+      ,[RESI New]
+      ,[FINI New]
+      ,[INDI New]
+      ,[PCAP New]
+      ,[SAPY New]
+      ,[ALTI New]
+	--INTO GetICsAndWeights
+  FROM [dbo].[tbl_Index_Constituents]
+  -- Function 1. i.) Filter table by rDate June 2020
+  --WHERE Date =  @rDate
+  WHERE Date = '2020-06-22' 
+
+  -- Function 1. iii.) Filter table by Index Constituents as per indexCode
+ SELECT * 
+  --INTO GetICs
+  FROM GetICsAndWeights 
+  WHERE [ALSI New] = 'ALSI' 
+	 OR	[TOPI New] = 'TOPI'
+	 OR	[DTOP New] = 'DTOP'
+	 OR	[RESI New] = 'RESI'
+	 OR	[FINI New] = 'FINI'
+	 OR	[INDI New] = 'INDI'
+	 OR	[PCAP New] = 'PCAP'
+	 OR	[SAPY New] = 'SAPY'
+	 OR	[ALTI New] = 'ALTI'
+	 -- Note 178 shares selelcted
+
+-- Output weights
+
+DECLARE @ALSI_MktCap BIGINT;
+SET @ALSI_MktCap = 
+	(SELECT  
+		SUM([Gross Market Capitalisation]) AS MarketCap  
+	FROM GetICs	
+	WHERE [ALSI New] = 'ALSI'	)
+
+SELECT @ALSI_MktCap;
+PRINT @ALSI_MktCap;
+
+SELECT [Instrument]
+		,[Gross Market Capitalisation]/@ALSI_MktCap AS ALSI_Weight
+		,[Gross Market Capitalisation]
+		,@ALSI_MktCap AS ALSI_MktCap
+		--INTO ALSI_Weights
+		FROM GetICs
+		WHERE [ALSI New] = 'ALSI'
+
+SELECT * FROM ALSI_Weights
+SELECT SUM(ALSI_Weight) FROM ALSI_Weights
