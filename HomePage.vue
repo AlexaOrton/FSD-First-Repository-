@@ -138,7 +138,7 @@
               </div>
         </div>
         <!--Button to download data-->
-      <button  class="btn btn-success mt-4 m-3" type="submit" id="CSVDownload" onclick="downloadCSV('download.csv')" title="Download to CSV">Download to CSV</Button>
+      <a href="../../assets/tbl_BA_Beta_Output_1.csv" download>Download</a>
     </div>
     <h6 class="text-dark m-4 text-left"> View the alpha, beta, total risk, unique risk, R-squared, Beta SE and alpha SE for either a selected instrument or index, at a particular point in time. The R-squared may be used to inform data on the risk that is attributable to movements in the instrument or index itself.
 </h6>
@@ -167,6 +167,7 @@
         </tr>
     </table>
     </div>
+    <a href="../../assets/allICsAndWeights.csv" download>Download</a>
     <h6 class="text-dark m-4 text-left">View the market capitalisation-based weight of either a particular index or industry per Index for a selected point in time. 
 </h6>
 </div>
@@ -245,6 +246,7 @@
         </tr>
     </table>
     </div>
+    <a href="../../assets/df_CorrMat_tbl_11.csv" download>Download</a>
     <h6 class="text-dark m-4">The TOPI Index is considered here: This correlation matrix may be used to identify the relationships between this index’s constituent Instruments for a particular quarter.</h6>
 </div>
 
